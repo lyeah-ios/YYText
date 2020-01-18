@@ -82,22 +82,17 @@ YYTextAttributeType YYTextAttributeGetType(NSString *name){
         dic[(id)kCTBaselineReferenceInfoAttributeName] = CoreText_YYText;
         dic[(id)kCTWritingDirectionAttributeName] = CoreText_YYText;
         dic[NSParagraphStyleAttributeName] = All;
-        
-        if (_YYDeviceSystemVersion() >= 7) {
-            dic[NSStrikethroughColorAttributeName] = UIKit;
-            dic[NSUnderlineColorAttributeName] = UIKit;
-            dic[NSTextEffectAttributeName] = UIKit;
-            dic[NSObliquenessAttributeName] = UIKit;
-            dic[NSExpansionAttributeName] = UIKit;
-            dic[(id)kCTLanguageAttributeName] = CoreText_YYText;
-            dic[NSBaselineOffsetAttributeName] = UIKit;
-            dic[NSWritingDirectionAttributeName] = All;
-            dic[NSAttachmentAttributeName] = UIKit;
-            dic[NSLinkAttributeName] = UIKit;
-        }
-        if (_YYDeviceSystemVersion() >= 8) {
-            dic[(id)kCTRubyAnnotationAttributeName] = CoreText;
-        }
+        dic[NSStrikethroughColorAttributeName] = UIKit;
+        dic[NSUnderlineColorAttributeName] = UIKit;
+        dic[NSTextEffectAttributeName] = UIKit;
+        dic[NSObliquenessAttributeName] = UIKit;
+        dic[NSExpansionAttributeName] = UIKit;
+        dic[(id)kCTLanguageAttributeName] = CoreText_YYText;
+        dic[NSBaselineOffsetAttributeName] = UIKit;
+        dic[NSWritingDirectionAttributeName] = All;
+        dic[NSAttachmentAttributeName] = UIKit;
+        dic[NSLinkAttributeName] = UIKit;
+        dic[(id)kCTRubyAnnotationAttributeName] = CoreText;
         
         dic[YYTextBackedStringAttributeName] = YYText;
         dic[YYTextBindingAttributeName] = YYText;
@@ -447,7 +442,7 @@ YYTextAttributeType YYTextAttributeGetType(NSString *name){
     if (font == (id)[NSNull null] || font == nil) {
         ((NSMutableDictionary *)_attributes)[(id)kCTFontAttributeName] = [NSNull null];
     } else {
-        CTFontRef ctFont = CTFontCreateWithName((__bridge CFStringRef)font.fontName, font.pointSize, NULL);
+        CTFontRef ctFont = CTFontCreateWithFontDescriptor((__bridge CTFontDescriptorRef)font.fontDescriptor, font.pointSize, NULL);
         if (ctFont) {
             ((NSMutableDictionary *)_attributes)[(id)kCTFontAttributeName] = (__bridge id)(ctFont);
             CFRelease(ctFont);

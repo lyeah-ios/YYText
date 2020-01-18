@@ -23,16 +23,9 @@ static dispatch_queue_t YYTextAsyncLayerGetDisplayQueue() {
     dispatch_once(&onceToken, ^{
         queueCount = (int)[NSProcessInfo processInfo].activeProcessorCount;
         queueCount = queueCount < 1 ? 1 : queueCount > MAX_QUEUE_COUNT ? MAX_QUEUE_COUNT : queueCount;
-        if ([UIDevice currentDevice].systemVersion.floatValue >= 8.0) {
-            for (NSUInteger i = 0; i < queueCount; i++) {
-                dispatch_queue_attr_t attr = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_USER_INITIATED, 0);
-                queues[i] = dispatch_queue_create("com.ibireme.text.render", attr);
-            }
-        } else {
-            for (NSUInteger i = 0; i < queueCount; i++) {
-                queues[i] = dispatch_queue_create("com.ibireme.text.render", DISPATCH_QUEUE_SERIAL);
-                dispatch_set_target_queue(queues[i], dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0));
-            }
+        for (NSUInteger i = 0; i < queueCount; i++) {
+            dispatch_queue_attr_t attr = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_USER_INITIATED, 0);
+            queues[i] = dispatch_queue_create("com.ibireme.text.render", attr);
         }
     });
     uint32_t cur = (uint32_t)OSAtomicIncrement32(&counter);

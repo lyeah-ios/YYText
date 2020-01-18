@@ -289,6 +289,11 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @property (nonatomic) BOOL ignoreCommonProperties;
 
+/**
+⚠️⚠️⚠️ LYH Support: Makes the view behind the highlighted area clickable.
+*/
+@property (nonatomic, assign) BOOL allowCustomControlEvent;
+
 /*
  Tips:
  

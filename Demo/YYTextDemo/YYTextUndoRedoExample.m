@@ -39,9 +39,7 @@
     textView.delegate = self;
     textView.allowsUndoAndRedo = YES; /// Undo and Redo
     textView.maximumUndoLevel = 10; /// Undo level
-    if (kiOS7Later) {
-        textView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
-    }
+    textView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
     textView.contentInset = UIEdgeInsetsMake(64, 0, 0, 0);
     textView.scrollIndicatorInsets = textView.contentInset;
     [self.view addSubview:textView];

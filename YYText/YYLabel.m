@@ -65,6 +65,13 @@ static dispatch_queue_t YYLabelGetReleaseQueue() {
 
 @implementation YYLabel
 
+/// ⚠️⚠️⚠️ LYH Support: iOS 13 DarkMode
+- (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection
+{
+    [super traitCollectionDidChange:previousTraitCollection];
+    [self.layer setNeedsDisplay];
+}
+
 #pragma mark - Private
 
 - (void)_updateIfNeeded {
@@ -147,6 +154,8 @@ static dispatch_queue_t YYLabelGetReleaseQueue() {
 
 - (void)_trackDidLongPress {
     [self _endLongPressTimer];
+    /// ⚠️⚠️⚠️ LYH Support: The click event will no longer be triggered after the long press event response @Aodan
+    BOOL longPressResponse = NO;
     if (_state.hasLongPressAction && _textLongPressAction) {
         NSRange range = NSMakeRange(NSNotFound, 0);
         CGRect rect = CGRectNull;
@@ -159,6 +168,7 @@ static dispatch_queue_t YYLabelGetReleaseQueue() {
             rect = textRect;
         }
         _textLongPressAction(self, _innerText, range, rect);
+        longPressResponse = YES;
     }
     if (_highlight) {
         YYTextAction longPressAction = _highlight.longPressAction ? _highlight.longPressAction : _highlightLongPressAction;
@@ -169,6 +179,10 @@ static dispatch_queue_t YYLabelGetReleaseQueue() {
             CGRect rect = [self._innerLayout rectForRange:range];
             rect = [self _convertRectFromLayout:rect];
             longPressAction(self, _innerText, _highlightRange, rect);
+            [self _removeHighlightAnimated:YES];
+            _state.trackingTouch = NO;
+        } else if (self.allowCustomControlEvent || longPressResponse) {
+            /// ⚠️⚠️⚠️ LYH Support
             [self _removeHighlightAnimated:YES];
             _state.trackingTouch = NO;
         }
@@ -525,6 +539,23 @@ static dispatch_queue_t YYLabelGetReleaseQueue() {
 
 #pragma mark - Touches
 
+#pragma mark - ⚠️⚠️⚠️ LYH Support
+
+/// Makes the view behind the highlighted area clickable @ZhangXiaogang @Aodan @LuWenlong
+- (BOOL)pointInside:(CGPoint)point withEvent:(UIEvent *)event
+{
+    BOOL result = NO;
+    if (self.allowCustomControlEvent) {
+        result = [super pointInside:point withEvent:event];
+    } else {
+        NSRange range;
+        if ([self _getHighlightAtPoint:point range:&range]) {
+            result = YES;
+        }
+    }
+    return result;
+}
+
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
     [self _updateIfNeeded];
     UITouch *touch = touches.anyObject;
@@ -612,7 +643,9 @@ static dispatch_queue_t YYLabelGetReleaseQueue() {
                 YYTextAction tapAction = _highlight.tapAction ? _highlight.tapAction : _highlightTapAction;
                 if (tapAction) {
                     YYTextPosition *start = [YYTextPosition positionWithOffset:_highlightRange.location];
-                    YYTextPosition *end = [YYTextPosition positionWithOffset:_highlightRange.location + _highlightRange.length affinity:YYTextAffinityBackward];
+                    /// ⚠️⚠️⚠️ LYH Support: fix end offset issue when highlightRange > visibleRange
+                    NSInteger endOffset = MIN(_innerLayout.visibleRange.length, _highlightRange.location + _highlightRange.length);
+                    YYTextPosition *end = [YYTextPosition positionWithOffset:endOffset affinity:YYTextAffinityBackward];
                     YYTextRange *range = [YYTextRange rangeWithStart:start end:end];
                     CGRect rect = [self._innerLayout rectForRange:range];
                     rect = [self _convertRectFromLayout:rect];

@@ -82,11 +82,7 @@
     textView.allowsCopyAttributedString = YES;
     textView.allowsPasteAttributedString = YES;
     textView.delegate = self;
-    if (kiOS7Later) {
-        textView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
-    } else {
-        textView.height -= 64;
-    }
+    textView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
     textView.scrollIndicatorInsets = textView.contentInset;
     textView.selectedRange = NSMakeRange(text.length, 0);
     [self.view addSubview:textView];

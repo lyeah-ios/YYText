@@ -42,9 +42,7 @@
     textView.delegate = self;
     textView.allowsPasteImage = YES; /// Pasts image
     textView.allowsPasteAttributedString = YES; /// Paste attributed string
-    if (kiOS7Later) {
-        textView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
-    }
+    textView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
     textView.contentInset = UIEdgeInsetsMake(64, 0, 0, 0);
     textView.scrollIndicatorInsets = textView.contentInset;
     [self.view addSubview:textView];

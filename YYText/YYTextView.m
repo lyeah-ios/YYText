@@ -37,22 +37,6 @@ static double _YYDeviceSystemVersion() {
 #define kSystemVersion _YYDeviceSystemVersion()
 #endif
 
-#ifndef kiOS6Later
-#define kiOS6Later (kSystemVersion >= 6)
-#endif
-
-#ifndef kiOS7Later
-#define kiOS7Later (kSystemVersion >= 7)
-#endif
-
-#ifndef kiOS8Later
-#define kiOS8Later (kSystemVersion >= 8)
-#endif
-
-#ifndef kiOS9Later
-#define kiOS9Later (kSystemVersion >= 9)
-#endif
-
 
 
 #define kDefaultUndoLevelMax 20 // Default maximum undo level
@@ -114,7 +98,7 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
     UIImageView *_placeHolderView;
     
     NSMutableAttributedString *_innerText; ///< nonnull, inner attributed text
-    NSMutableAttributedString *_delectedText; ///< detected text for display
+    NSMutableAttributedString *_detectedText; ///< detected text for display
     YYTextContainer *_innerContainer; ///< nonnull, inner text container
     YYTextLayout *_innerLayout; ///< inner text layout, the text in this layout is longer than `_innerText` by appending '\n'
     
@@ -238,9 +222,9 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
     NSMutableAttributedString *text = _innerText.mutableCopy;
     _placeHolderView.hidden = text.length > 0;
     if ([self _detectText:text]) {
-        _delectedText = text;
+        _detectedText = text;
     } else {
-        _delectedText = nil;
+        _detectedText = nil;
     }
     [text replaceCharactersInRange:NSMakeRange(text.length, 0) withString:@"\r"]; // add for nextline caret
     [text yy_removeDiscontinuousAttributesInRange:NSMakeRange(_innerText.length, 1)];
@@ -667,7 +651,7 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
     NSTimeInterval fadeDuration = animated ? kHighlightFadeDuration : 0;
     if (!_highlight) return;
     if (!_highlightLayout) {
-        NSMutableAttributedString *hiText = (_delectedText ? _delectedText : _innerText).mutableCopy;
+        NSMutableAttributedString *hiText = (_detectedText ? _detectedText : _innerText).mutableCopy;
         NSDictionary *newAttrs = _highlight.attributes;
         [newAttrs enumerateKeysAndObjectsUsingBlock:^(NSString *key, id value, BOOL *stop) {
             [hiText yy_setAttribute:key value:value range:_highlightRange];
@@ -751,11 +735,7 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
                     newInset.bottom = inter.size.height + extend;
                     newIndicatorInsets.bottom = newInset.bottom;
                     UIViewAnimationOptions curve;
-                    if (kiOS7Later) {
-                        curve = 7 << 16;
-                    } else {
-                        curve = UIViewAnimationOptionCurveEaseInOut;
-                    }
+                    curve = 7 << 16;
                     [UIView animateWithDuration:0.25 delay:0 options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionAllowUserInteraction | curve animations:^{
                         [super setContentInset:newInset];
                         [super setScrollIndicatorInsets:newIndicatorInsets];
@@ -1144,7 +1124,7 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
         else startIndex--;
     }
     NSRange highlightRange = {0};
-    NSAttributedString *text = _delectedText ? _delectedText : _innerText;
+    NSAttributedString *text = _detectedText ? _detectedText : _innerText;
     YYTextHighlight *highlight = [text attribute:YYTextHighlightAttributeName
                                          atIndex:startIndex
                            longestEffectiveRange:&highlightRange
@@ -1420,7 +1400,13 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
 
 /// Replace the range with the text, and change the `_selectTextRange`.
 /// The caller should make sure the `range` and `text` are valid before call this method.
-- (void)_replaceRange:(YYTextRange *)range withText:(NSString *)text notifyToDelegate:(BOOL)notify{
+- (void)_replaceRange:(YYTextRange *)range withText:(NSString *)text notifyToDelegate:(BOOL)notify {
+    /// ⚠️⚠️⚠️ LYH Support: fix #374
+    if (notify) [_inputDelegate textWillChange:self];
+    NSRange newRange = NSMakeRange(range.asRange.location, text.length);
+    [_innerText replaceCharactersInRange:range.asRange withString:text];
+    [_innerText yy_removeDiscontinuousAttributesInRange:newRange];
+    if (notify) [_inputDelegate textDidChange:self];
     if (NSEqualRanges(range.asRange, _selectedTextRange.asRange)) {
         if (notify) [_inputDelegate selectionWillChange:self];
         NSRange newRange = NSMakeRange(0, 0);
@@ -1466,11 +1452,6 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
             if (notify) [_inputDelegate selectionDidChange:self];
         }
     }
-    if (notify) [_inputDelegate textWillChange:self];
-    NSRange newRange = NSMakeRange(range.asRange.location, text.length);
-    [_innerText replaceCharactersInRange:range.asRange withString:text];
-    [_innerText yy_removeDiscontinuousAttributesInRange:newRange];
-    if (notify) [_inputDelegate textDidChange:self];
 }
 
 /// Save current typing attributes to the attributes holder.
@@ -1505,29 +1486,34 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
     [self _setFont:font];
     [self _setTextColor:color];
     [self _setTextAlignment:style.alignment];
-    [self _setSelectedRange:_selectedTextRange.asRange];
+    /// ⚠️⚠️⚠️ LYH Support: move [self _setSelectedRange:_selectedTextRange.asRange]; to last line
     [self _setTypingAttributes:_typingAttributesHolder.yy_attributes];
     [self _setAttributedText:_innerText];
+    [self _setSelectedRange:_selectedTextRange.asRange];
 }
 
 /// Parse text with `textParser` and update the _selectedTextRange.
 /// @return Whether changed (text or selection)
 - (BOOL)_parseText {
+    return [self _parseTextWithNotifyToDelegate:YES];
+}
+
+- (BOOL)_parseTextWithNotifyToDelegate:(BOOL)notify {
     if (self.textParser) {
         YYTextRange *oldTextRange = _selectedTextRange;
         NSRange newRange = _selectedTextRange.asRange;
         
-        [_inputDelegate textWillChange:self];
+        if (notify) [_inputDelegate textWillChange:self];
         BOOL textChanged = [self.textParser parseText:_innerText selectedRange:&newRange];
-        [_inputDelegate textDidChange:self];
+        if (notify) [_inputDelegate textDidChange:self];
         
         YYTextRange *newTextRange = [YYTextRange rangeWithRange:newRange];
         newTextRange = [self _correctedTextRange:newTextRange];
         
         if (![oldTextRange isEqual:newTextRange]) {
-            [_inputDelegate selectionWillChange:self];
+            if (notify) [_inputDelegate selectionWillChange:self];
             _selectedTextRange = newTextRange;
-            [_inputDelegate selectionDidChange:self];
+            if (notify) [_inputDelegate selectionDidChange:self];
         }
         return textChanged;
     }
@@ -1686,63 +1672,39 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
     UIViewController *ctrl = [self _getRootViewController];
     
     if (canUndo && canRedo) {
-        if (kiOS8Later) {
-            UIAlertController *alert = [UIAlertController alertControllerWithTitle:strings[4] message:@"" preferredStyle:UIAlertControllerStyleAlert];
-            [alert addAction:[UIAlertAction actionWithTitle:strings[3] style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-                [_self _undo];
-                [_self _restoreFirstResponderAfterUndoAlert];
-            }]];
-            [alert addAction:[UIAlertAction actionWithTitle:strings[2] style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-                [_self _redo];
-                [_self _restoreFirstResponderAfterUndoAlert];
-            }]];
-            [alert addAction:[UIAlertAction actionWithTitle:strings[0] style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
-                [_self _restoreFirstResponderAfterUndoAlert];
-            }]];
-            [ctrl presentViewController:alert animated:YES completion:nil];
-        } else {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:strings[4] message:@"" delegate:self cancelButtonTitle:strings[0] otherButtonTitles:strings[3], strings[2], nil];
-            [alert show];
-#pragma clang diagnostic pop
-        }
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:strings[4] message:@"" preferredStyle:UIAlertControllerStyleAlert];
+        [alert addAction:[UIAlertAction actionWithTitle:strings[3] style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+            [_self _undo];
+            [_self _restoreFirstResponderAfterUndoAlert];
+        }]];
+        [alert addAction:[UIAlertAction actionWithTitle:strings[2] style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+            [_self _redo];
+            [_self _restoreFirstResponderAfterUndoAlert];
+        }]];
+        [alert addAction:[UIAlertAction actionWithTitle:strings[0] style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+            [_self _restoreFirstResponderAfterUndoAlert];
+        }]];
+        [ctrl presentViewController:alert animated:YES completion:nil];
     } else if (canUndo) {
-        if (kiOS8Later) {
-            UIAlertController *alert = [UIAlertController alertControllerWithTitle:strings[4] message:@"" preferredStyle:UIAlertControllerStyleAlert];
-            [alert addAction:[UIAlertAction actionWithTitle:strings[3] style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-                [_self _undo];
-                [_self _restoreFirstResponderAfterUndoAlert];
-            }]];
-            [alert addAction:[UIAlertAction actionWithTitle:strings[0] style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
-                [_self _restoreFirstResponderAfterUndoAlert];
-            }]];
-            [ctrl presentViewController:alert animated:YES completion:nil];
-        } else {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:strings[4] message:@"" delegate:self cancelButtonTitle:strings[0] otherButtonTitles:strings[3], nil];
-            [alert show];
-#pragma clang diagnostic pop
-        }
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:strings[4] message:@"" preferredStyle:UIAlertControllerStyleAlert];
+        [alert addAction:[UIAlertAction actionWithTitle:strings[3] style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+            [_self _undo];
+            [_self _restoreFirstResponderAfterUndoAlert];
+        }]];
+        [alert addAction:[UIAlertAction actionWithTitle:strings[0] style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+            [_self _restoreFirstResponderAfterUndoAlert];
+        }]];
+        [ctrl presentViewController:alert animated:YES completion:nil];
     } else if (canRedo) {
-        if (kiOS8Later) {
-            UIAlertController *alert = [UIAlertController alertControllerWithTitle:strings[2] message:@"" preferredStyle:UIAlertControllerStyleAlert];
-            [alert addAction:[UIAlertAction actionWithTitle:strings[1] style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-                [_self _redo];
-                [_self _restoreFirstResponderAfterUndoAlert];
-            }]];
-            [alert addAction:[UIAlertAction actionWithTitle:strings[0] style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
-                [_self _restoreFirstResponderAfterUndoAlert];
-            }]];
-            [ctrl presentViewController:alert animated:YES completion:nil];
-        } else {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:strings[2] message:@"" delegate:self cancelButtonTitle:strings[0] otherButtonTitles:strings[1], nil];
-            [alert show];
-#pragma clang diagnostic pop
-        }
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:strings[2] message:@"" preferredStyle:UIAlertControllerStyleAlert];
+        [alert addAction:[UIAlertAction actionWithTitle:strings[1] style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+            [_self _redo];
+            [_self _restoreFirstResponderAfterUndoAlert];
+        }]];
+        [alert addAction:[UIAlertAction actionWithTitle:strings[0] style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+            [_self _restoreFirstResponderAfterUndoAlert];
+        }]];
+        [ctrl presentViewController:alert animated:YES completion:nil];
     }
 }
 #endif
@@ -2607,7 +2569,10 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
                     if (_markedTextRange) {
                         showMagnifierRanged = YES;
                     } else {
-                        showMagnifierCaret = YES;
+                        /// ⚠️⚠️⚠️ LYH Support
+                        if(_state.showingMagnifierCaret){
+                            showMagnifierCaret = YES;
+                        }
                     }
                 }
             }
@@ -2684,6 +2649,8 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
                     [self _showMenu];
                 } else {
                     [self performSelector:@selector(becomeFirstResponder) withObject:nil afterDelay:0];
+                    /// ⚠️⚠️⚠️ LYH Support: fix long press does not trigger menu
+                    [self _showMenu];
                 }
             } else if (_state.deleteConfirm || _markedTextRange) {
                 [self _updateTextRangeByTrackingCaret];
@@ -3232,7 +3199,7 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
         [self _saveToUndoStack];
         [self _resetRedoStack];
     }
-    [self replaceRange:_selectedTextRange withText:text];
+    [self replaceRange:_selectedTextRange withText:text notifyToDelegate:NO];
 }
 
 - (void)deleteBackward {
@@ -3247,10 +3214,8 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
         YYTextBinding *binding = [_innerText attribute:YYTextBindingAttributeName atIndex:range.location - 1 longestEffectiveRange:&effectiveRange inRange:NSMakeRange(0, _innerText.length)];
         if (binding && binding.deleteConfirm) {
             _state.deleteConfirm = YES;
-            [_inputDelegate selectionWillChange:self];
             _selectedTextRange = [YYTextRange rangeWithRange:effectiveRange];
             _selectedTextRange = [self _correctedTextRange:_selectedTextRange];
-            [_inputDelegate selectionDidChange:self];
             
             [self _updateOuterProperties];
             [self _updateSelectionView];
@@ -3269,7 +3234,7 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
         [self _saveToUndoStack];
         [self _resetRedoStack];
     }
-    [self replaceRange:[YYTextRange rangeWithRange:range] withText:@""];
+    [self replaceRange:[YYTextRange rangeWithRange:range] withText:@"" notifyToDelegate:NO];
 }
 
 #pragma mark - @protocol UITextInput
@@ -3288,10 +3253,8 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
     _state.deleteConfirm = NO;
     _state.typingAttributesOnce = NO;
     
-    [_inputDelegate selectionWillChange:self];
     _selectedTextRange = selectedTextRange;
     _lastTypeRange = _selectedTextRange.asRange;
-    [_inputDelegate selectionDidChange:self];
     
     [self _updateOuterProperties];
     [self _updateSelectionView];
@@ -3344,12 +3307,18 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
     if (!markedText) markedText = @"";
     if (_markedTextRange == nil) {
         _markedTextRange = [YYTextRange rangeWithRange:NSMakeRange(_selectedTextRange.end.offset, markedText.length)];
-        [_innerText replaceCharactersInRange:NSMakeRange(_selectedTextRange.end.offset, 0) withString:markedText];
+        /// ⚠️⚠️⚠️ LYH Support
+        if (_selectedTextRange.end.offset <= _innerText.length) {
+            [_innerText replaceCharactersInRange:NSMakeRange(_selectedTextRange.end.offset, 0) withString:markedText];
+        }
         _selectedTextRange = [YYTextRange rangeWithRange:NSMakeRange(_selectedTextRange.start.offset + selectedRange.location, selectedRange.length)];
     } else {
         _markedTextRange = [self _correctedTextRange:_markedTextRange];
         [_innerText replaceCharactersInRange:_markedTextRange.asRange withString:markedText];
-        _markedTextRange = [YYTextRange rangeWithRange:NSMakeRange(_markedTextRange.start.offset, markedText.length)];
+        /// ⚠️⚠️⚠️ LYH Support
+        if (_markedTextRange.asRange.location + _markedTextRange.asRange.length <= _innerText.length) {
+            _markedTextRange = [YYTextRange rangeWithRange:NSMakeRange(_markedTextRange.start.offset, markedText.length)];
+        }
         _selectedTextRange = [YYTextRange rangeWithRange:NSMakeRange(_markedTextRange.start.offset + selectedRange.location, selectedRange.length)];
     }
     
@@ -3393,6 +3362,10 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
 }
 
 - (void)replaceRange:(YYTextRange *)range withText:(NSString *)text {
+    [self replaceRange:range withText:text notifyToDelegate:YES];
+}
+
+- (void)replaceRange:(YYTextRange *)range withText:(NSString *)text notifyToDelegate:(BOOL)notify {
     if (!range) return;
     if (!text) text = @"";
     if (range.asRange.length == 0 && text.length == 0) return;
@@ -3430,7 +3403,7 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
     [self _endTouchTracking];
     [self _hideMenu];
     
-    [self _replaceRange:range withText:text notifyToDelegate:YES];
+    [self _replaceRange:range withText:text notifyToDelegate:notify];
     if (useInnerAttributes) {
         [_innerText yy_setAttributes:_typingAttributesHolder.yy_attributes];
     } else if (applyTypingAttributes) {
@@ -3439,7 +3412,7 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
             [_innerText yy_setAttribute:key value:obj range:newRange];
         }];
     }
-    [self _parseText];
+    [self _parseTextWithNotifyToDelegate:notify];
     [self _updateOuterProperties];
     [self _update];
     

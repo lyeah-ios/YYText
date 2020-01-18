@@ -295,30 +295,19 @@ static int _YYTextKeyboardViewFrameObserverKey;
     }
     
     // Get the view
-    if ([self _systemVersion] < 8) {
-        // UIPeripheralHostView
-        for (UIView *view in window.subviews) {
-            NSString *viewName = NSStringFromClass(view.class);
-            if (viewName.length != 20) continue;
-            if (![viewName hasPrefix:@"UI"]) continue;
-            if (![viewName hasSuffix:@"PeripheralHostView"]) continue;
-            return view;
-        }
-    } else {
-        // UIInputSetContainerView
-        for (UIView *view in window.subviews) {
-            NSString *viewName = NSStringFromClass(view.class);
-            if (viewName.length != 23) continue;
-            if (![viewName hasPrefix:@"UI"]) continue;
-            if (![viewName hasSuffix:@"InputSetContainerView"]) continue;
-            // UIInputSetHostView
-            for (UIView *subView in view.subviews) {
-                NSString *subViewName = NSStringFromClass(subView.class);
-                if (subViewName.length != 18) continue;
-                if (![subViewName hasPrefix:@"UI"]) continue;
-                if (![subViewName hasSuffix:@"InputSetHostView"]) continue;
-                return subView;
-            }
+    // UIInputSetContainerView
+    for (UIView *view in window.subviews) {
+        NSString *viewName = NSStringFromClass(view.class);
+        if (viewName.length != 23) continue;
+        if (![viewName hasPrefix:@"UI"]) continue;
+        if (![viewName hasSuffix:@"InputSetContainerView"]) continue;
+        // UIInputSetHostView
+        for (UIView *subView in view.subviews) {
+            NSString *subViewName = NSStringFromClass(subView.class);
+            if (subViewName.length != 18) continue;
+            if (![subViewName hasPrefix:@"UI"]) continue;
+            if (![subViewName hasSuffix:@"InputSetHostView"]) continue;
+            return subView;
         }
     }
     
@@ -430,36 +419,6 @@ static int _YYTextKeyboardViewFrameObserverKey;
         trans.animationDuration = _notificationDuration;
         trans.animationCurve = _notificationCurve;
         trans.animationOption = _notificationCurve << 16;
-        
-        // Fix iPad(iOS7) keyboard frame error after rorate device when the keyboard is not docked to bottom.
-        if (((int)[self _systemVersion]) == 7) {
-            UIInterfaceOrientation ori = app.statusBarOrientation;
-            if (_fromOrientation != UIInterfaceOrientationUnknown && _fromOrientation != ori) {
-                switch (ori) {
-                    case UIInterfaceOrientationPortrait: {
-                        if (CGRectGetMaxY(trans.toFrame) != window.frame.size.height) {
-                            trans.toFrame.origin.y -= trans.toFrame.size.height;
-                        }
-                    } break;
-                    case UIInterfaceOrientationPortraitUpsideDown: {
-                        if (CGRectGetMinY(trans.toFrame) != 0) {
-                            trans.toFrame.origin.y += trans.toFrame.size.height;
-                        }
-                    } break;
-                    case UIInterfaceOrientationLandscapeLeft: {
-                        if (CGRectGetMaxX(trans.toFrame) != window.frame.size.width) {
-                            trans.toFrame.origin.x -= trans.toFrame.size.width;
-                        }
-                    } break;
-                    case UIInterfaceOrientationLandscapeRight: {
-                        if (CGRectGetMinX(trans.toFrame) != 0) {
-                            trans.toFrame.origin.x += trans.toFrame.size.width;
-                        }
-                    } break;
-                    default: break;
-                }
-            }
-        }
     } else {
         trans.toFrame = _observedToFrame;
     }

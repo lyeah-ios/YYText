@@ -126,7 +126,7 @@
         toolbar = [UIToolbar new];
     }
     toolbar.size = CGSizeMake(kScreenWidth, 40);
-    toolbar.top = kiOS7Later ? 64 : 0;
+    toolbar.top = 64;
     [self.view addSubview:toolbar];
     
     
@@ -147,7 +147,7 @@
     UISwitch *switcher = [UISwitch new];
     [switcher sizeToFit];
     switcher.centerY = toolbar.height / 2;
-    switcher.left = label.right + (kiOS7Later ? 10 : -10);
+    switcher.left = label.right + 10;
     switcher.layer.transformScale = 0.7;
     __weak typeof(self) _self = self;
     [switcher addBlockForControlEvents:UIControlEventValueChanged block:^(UISwitch *switcher) {

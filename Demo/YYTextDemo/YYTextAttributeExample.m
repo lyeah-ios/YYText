@@ -224,8 +224,8 @@
     YYLabel *label = [YYLabel new];
     label.attributedText = text;
     label.width = self.view.width;
-    label.height = self.view.height - (kiOS7Later ? 64 : 44);
-    label.top = (kiOS7Later ? 64 : 0);
+    label.height = self.view.height - 64;
+    label.top = 64;
     label.textAlignment = NSTextAlignmentCenter;
     label.textVerticalAlignment = YYTextVerticalAlignmentCenter;
     label.numberOfLines = 0;
@@ -263,13 +263,13 @@
     label.textContainerInset = UIEdgeInsetsMake(padding, padding, padding, padding);
     label.height = [msg heightForFont:label.font width:label.width] + 2 * padding;
     
-    label.bottom = (kiOS7Later ? 64 : 0);
+    label.bottom = 64;
     [self.view addSubview:label];
     [UIView animateWithDuration:0.3 animations:^{
-        label.top = (kiOS7Later ? 64 : 0);
+        label.top = 64;
     } completion:^(BOOL finished) {
         [UIView animateWithDuration:0.2 delay:2 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-            label.bottom = (kiOS7Later ? 64 : 0);
+            label.bottom = 64;
         } completion:^(BOOL finished) {
             [label removeFromSuperview];
         }];

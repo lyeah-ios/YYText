@@ -36,6 +36,11 @@
         if (_CTLine) CFRelease(_CTLine);
         _CTLine = CTLine;
         if (_CTLine) {
+            /// ⚠️⚠️⚠️ LYH Support: fix #733 #748
+            if (@available(iOS 11.0, *)) {
+                CGRect tempRect = CTLineGetBoundsWithOptions(_CTLine, 0);
+                _descent = tempRect.size.height - _ascent;
+            }
             _lineWidth = CTLineGetTypographicBounds(_CTLine, &_ascent, &_descent, &_leading);
             CFRange range = CTLineGetStringRange(_CTLine);
             _range = NSMakeRange(range.location, range.length);
