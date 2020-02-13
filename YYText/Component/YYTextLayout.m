@@ -697,7 +697,8 @@ dispatch_semaphore_signal(_lock);
                     CGFloat fontSize = font ? CTFontGetSize(font) : 12.0;
                     UIFont *uiFont = [UIFont systemFontOfSize:fontSize * 0.9];
                     if (uiFont) {
-                        font = CTFontCreateWithName((__bridge CFStringRef)uiFont.fontName, uiFont.pointSize, NULL);
+                        /// ⚠️⚠️⚠️ LYH Support: fixed Xcode console log warning
+                        font = CTFontCreateWithFontDescriptor((__bridge CTFontDescriptorRef)uiFont.fontDescriptor, uiFont.pointSize, NULL);
                     } else {
                         font = NULL;
                     }
@@ -711,7 +712,7 @@ dispatch_semaphore_signal(_lock);
                         // ignore clear color
                         [attrs removeObjectForKey:(id)kCTForegroundColorAttributeName];
                     }
-                    /// ⚠️⚠️⚠️ LYH Support: remeve redundant code => if (!attrs) attrs = [NSMutableDictionary new];
+                    /// ⚠️⚠️⚠️ LYH Support: remove redundant code => if (!attrs) attrs = [NSMutableDictionary new];
                 }
                 truncationToken = [[NSAttributedString alloc] initWithString:YYTextTruncationToken attributes:attrs];
                 truncationTokenLine = CTLineCreateWithAttributedString((CFAttributedStringRef)truncationToken);
