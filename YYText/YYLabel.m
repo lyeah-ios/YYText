@@ -181,7 +181,7 @@ static dispatch_queue_t YYLabelGetReleaseQueue() {
             longPressAction(self, _innerText, _highlightRange, rect);
             [self _removeHighlightAnimated:_fadeOnHighlight];
             _state.trackingTouch = NO;
-        } else if (self.allowCustomControlEvent || longPressResponse) {
+        } else if (_allowCustomControlEvent || longPressResponse) {
             /// ⚠️⚠️⚠️ LYH Support
             [self _removeHighlightAnimated:_fadeOnHighlight];
             _state.trackingTouch = NO;
@@ -413,6 +413,7 @@ static dispatch_queue_t YYLabelGetReleaseQueue() {
     _clearContentsBeforeAsynchronouslyDisplay = YES;
     _fadeOnAsynchronouslyDisplay = YES;
     _fadeOnHighlight = YES;
+    _allowCustomControlEvent = NO;
     
     self.isAccessibilityElement = YES;
 }
@@ -545,7 +546,7 @@ static dispatch_queue_t YYLabelGetReleaseQueue() {
 - (BOOL)pointInside:(CGPoint)point withEvent:(UIEvent *)event
 {
     BOOL result = NO;
-    if (self.allowCustomControlEvent) {
+    if (_allowCustomControlEvent) {
         result = [super pointInside:point withEvent:event];
     } else {
         NSRange range;

@@ -292,7 +292,7 @@ NS_ASSUME_NONNULL_BEGIN
 /**
 ⚠️⚠️⚠️ LYH Support: Makes the view behind the highlighted area clickable.
 */
-@property (nonatomic, assign) BOOL allowCustomControlEvent;
+@property (nonatomic) BOOL allowCustomControlEvent;
 
 /*
  Tips:
