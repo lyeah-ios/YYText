@@ -119,12 +119,7 @@
     
     
     
-    UIView *toolbar;
-    if ([UIVisualEffectView class]) {
-        toolbar = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleExtraLight]];
-    } else {
-        toolbar = [UIToolbar new];
-    }
+    UIVisualEffectView *toolbar = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleExtraLight]];
     toolbar.size = CGSizeMake(kScreenWidth, 40);
     toolbar.top = 64;
     [self.view addSubview:toolbar];
@@ -133,7 +128,7 @@
     YYFPSLabel *fps = [YYFPSLabel new];
     fps.centerY = toolbar.height / 2;
     fps.left = 5;
-    [toolbar addSubview:fps];
+    [toolbar.contentView addSubview:fps];
     
     UILabel *label = [UILabel new];
     label.backgroundColor = [UIColor clearColor];
@@ -142,7 +137,7 @@
     [label sizeToFit];
     label.centerY = toolbar.height / 2;
     label.left = fps.right + 10;
-    [toolbar addSubview:label];
+    [toolbar.contentView addSubview:label];
     
     UISwitch *switcher = [UISwitch new];
     [switcher sizeToFit];
@@ -155,7 +150,7 @@
         if (!self) return;
         [self setAsync:switcher.isOn];
     }];
-    [toolbar addSubview:switcher];
+    [toolbar.contentView addSubview:switcher];
 }
 
 - (void)setAsync:(BOOL)async {

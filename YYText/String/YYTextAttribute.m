@@ -15,17 +15,6 @@
 #import "NSAttributedString+YYText.h"
 #import "YYTextArchiver.h"
 
-
-static double _YYDeviceSystemVersion() {
-    static double version;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        version = [UIDevice currentDevice].systemVersion.doubleValue;
-    });
-    return version;
-}
-
-
 NSString *const YYTextBackedStringAttributeName = @"YYTextBackedString";
 NSString *const YYTextBindingAttributeName = @"YYTextBinding";
 NSString *const YYTextShadowAttributeName = @"YYTextShadow";
@@ -75,7 +64,6 @@ YYTextAttributeType YYTextAttributeGetType(NSString *name){
         dic[(id)kCTSuperscriptAttributeName] = UIKit; //it's a CoreText attrubite, but only supported by UIKit...
         dic[NSVerticalGlyphFormAttributeName] = All;
         dic[(id)kCTGlyphInfoAttributeName] = CoreText_YYText;
-        dic[(id)kCTCharacterShapeAttributeName] = CoreText_YYText;
         dic[(id)kCTRunDelegateAttributeName] = CoreText_YYText;
         dic[(id)kCTBaselineClassAttributeName] = CoreText_YYText;
         dic[(id)kCTBaselineInfoAttributeName] = CoreText_YYText;

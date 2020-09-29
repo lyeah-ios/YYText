@@ -116,13 +116,10 @@ static int _YYTextKeyboardViewFrameObserverKey;
                                              selector:@selector(_keyboardFrameWillChangeNotification:)
                                                  name:UIKeyboardWillChangeFrameNotification
                                                object:nil];
-    // for iPad (iOS 9)
-    if ([UIDevice currentDevice].systemVersion.floatValue >= 9) {
-        [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(_keyboardFrameDidChangeNotification:)
-                                                     name:UIKeyboardDidChangeFrameNotification
-                                                   object:nil];
-    }
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(_keyboardFrameDidChangeNotification:)
+                                                 name:UIKeyboardDidChangeFrameNotification
+                                               object:nil];
     return self;
 }
 
@@ -185,22 +182,11 @@ static int _YYTextKeyboardViewFrameObserverKey;
     NSMutableArray *kbWindows = nil;
     for (window in app.windows) {
         NSString *windowName = NSStringFromClass(window.class);
-        if ([self _systemVersion] < 9) {
-            // UITextEffectsWindow
-            if (windowName.length == 19 &&
-                [windowName hasPrefix:@"UI"] &&
-                [windowName hasSuffix:@"TextEffectsWindow"]) {
-                if (!kbWindows) kbWindows = [NSMutableArray new];
-                [kbWindows addObject:window];
-            }
-        } else {
-            // UIRemoteKeyboardWindow
-            if (windowName.length == 22 &&
-                [windowName hasPrefix:@"UI"] &&
-                [windowName hasSuffix:@"RemoteKeyboardWindow"]) {
-                if (!kbWindows) kbWindows = [NSMutableArray new];
-                [kbWindows addObject:window];
-            }
+        if (windowName.length == 22 &&
+            [windowName hasPrefix:@"UI"] &&
+            [windowName hasSuffix:@"RemoteKeyboardWindow"]) {
+            if (!kbWindows) kbWindows = [NSMutableArray new];
+            [kbWindows addObject:window];
         }
     }
     
@@ -253,26 +239,8 @@ static int _YYTextKeyboardViewFrameObserverKey;
 
 #pragma mark - private
 
-- (double)_systemVersion {
-    static double v;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        v = [UIDevice currentDevice].systemVersion.doubleValue;
-    });
-    return v;
-}
-
 - (UIView *)_getKeyboardViewFromWindow:(UIWindow *)window {
     /*
-     iOS 6/7:
-     UITextEffectsWindow
-        UIPeripheralHostView << keyboard
-     
-     iOS 8:
-     UITextEffectsWindow
-        UIInputSetContainerView
-            UIInputSetHostView << keyboard
-     
      iOS 9:
      UIRemoteKeyboardWindow
         UIInputSetContainerView
@@ -282,17 +250,10 @@ static int _YYTextKeyboardViewFrameObserverKey;
     
     // Get the window
     NSString *windowName = NSStringFromClass(window.class);
-    if ([self _systemVersion] < 9) {
-        // UITextEffectsWindow
-        if (windowName.length != 19) return nil;
-        if (![windowName hasPrefix:@"UI"]) return nil;
-        if (![windowName hasSuffix:@"TextEffectsWindow"]) return nil;
-    } else {
-        // UIRemoteKeyboardWindow
-        if (windowName.length != 22) return nil;
-        if (![windowName hasPrefix:@"UI"]) return nil;
-        if (![windowName hasSuffix:@"RemoteKeyboardWindow"]) return nil;
-    }
+    // UIRemoteKeyboardWindow
+    if (windowName.length != 22) return nil;
+    if (![windowName hasPrefix:@"UI"]) return nil;
+    if (![windowName hasSuffix:@"RemoteKeyboardWindow"]) return nil;
     
     // Get the view
     // UIInputSetContainerView

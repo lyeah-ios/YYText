@@ -11,7 +11,7 @@
 
 #import "UIPasteboard+YYText.h"
 #import "NSAttributedString+YYText.h"
-#import <MobileCoreServices/MobileCoreServices.h>
+#import <CoreServices/CoreServices.h>
 
 
 #if __has_include("YYImage.h")

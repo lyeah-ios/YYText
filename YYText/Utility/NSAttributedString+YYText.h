@@ -1291,7 +1291,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)yy_setSuperscript:(nullable NSNumber *)superscript range:(NSRange)range;
 - (void)yy_setGlyphInfo:(nullable CTGlyphInfoRef)glyphInfo range:(NSRange)range;
-- (void)yy_setCharacterShape:(nullable NSNumber *)characterShape range:(NSRange)range;
 - (void)yy_setRunDelegate:(nullable CTRunDelegateRef)runDelegate range:(NSRange)range;
 - (void)yy_setBaselineClass:(nullable CFStringRef)baselineClass range:(NSRange)range;
 - (void)yy_setBaselineInfo:(nullable CFDictionaryRef)baselineInfo range:(NSRange)range;
@@ -1378,21 +1377,6 @@ NS_ASSUME_NONNULL_BEGIN
  @param string  The string to append to the receiver, must not be nil.
  */
 - (void)yy_appendString:(NSString *)string;
-
-/**
- Set foreground color with [UIColor clearColor] in joined-emoji range.
- Emoji drawing will not be affected by the foreground color.
- 
- @discussion In iOS 8.3, Apple releases some new diversified emojis. 
- There's some single emoji which can be assembled to a new 'joined-emoji'.
- The joiner is unicode character 'ZERO WIDTH JOINER' (U+200D).
- For example: 👨👩👧👧 -> 👨‍👩‍👧‍👧.
- 
- When there are more than 5 'joined-emoji' in a same CTLine, CoreText may render some
- extra glyphs above the emoji. It's a bug in CoreText, try this method to avoid.
- This bug is fixed in iOS 9.
- */
-- (void)yy_setClearColorToJoinedEmoji;
 
 /**
  Removes all discontinuous attributes in a specified range.

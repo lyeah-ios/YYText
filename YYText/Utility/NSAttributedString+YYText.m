@@ -21,22 +21,6 @@
 @interface NSAttributedString_YYText : NSObject @end
 @implementation NSAttributedString_YYText @end
 
-
-static double _YYDeviceSystemVersion() {
-    static double version;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        version = [UIDevice currentDevice].systemVersion.doubleValue;
-    });
-    return version;
-}
-
-#ifndef kSystemVersion
-#define kSystemVersion _YYDeviceSystemVersion()
-#endif
-
-
-
 @implementation NSAttributedString (YYText)
 
 - (NSData *)yy_archiveToData {
@@ -648,7 +632,6 @@ return style. _attr_;
     dispatch_once(&onceToken, ^{
         failSet = [NSMutableSet new];
         [failSet addObject:(id)kCTGlyphInfoAttributeName];
-        [failSet addObject:(id)kCTCharacterShapeAttributeName];
         [failSet addObject:(id)kCTLanguageAttributeName];
         [failSet addObject:(id)kCTRunDelegateAttributeName];
         [failSet addObject:(id)kCTBaselineClassAttributeName];
@@ -1111,10 +1094,6 @@ return style. _attr_;
     [self yy_setAttribute:(id)kCTGlyphInfoAttributeName value:(__bridge id)glyphInfo range:range];
 }
 
-- (void)yy_setCharacterShape:(NSNumber *)characterShape range:(NSRange)range {
-    [self yy_setAttribute:(id)kCTCharacterShapeAttributeName value:characterShape range:range];
-}
-
 - (void)yy_setRunDelegate:(CTRunDelegateRef)runDelegate range:(NSRange)range {
     [self yy_setAttribute:(id)kCTRunDelegateAttributeName value:(__bridge id)runDelegate range:range];
 }
@@ -1245,51 +1224,6 @@ return style. _attr_;
     NSUInteger length = self.length;
     [self replaceCharactersInRange:NSMakeRange(length, 0) withString:string];
     [self yy_removeDiscontinuousAttributesInRange:NSMakeRange(length, string.length)];
-}
-
-- (void)yy_setClearColorToJoinedEmoji {
-    NSString *str = self.string;
-    if (str.length < 8) return;
-    
-    // Most string do not contains the joined-emoji, test the joiner first.
-    BOOL containsJoiner = NO;
-    {
-        CFStringRef cfStr = (__bridge CFStringRef)str;
-        BOOL needFree = NO;
-        UniChar *chars = NULL;
-        chars = (void *)CFStringGetCharactersPtr(cfStr);
-        if (!chars) {
-            chars = malloc(str.length * sizeof(UniChar));
-            if (chars) {
-                needFree = YES;
-                CFStringGetCharacters(cfStr, CFRangeMake(0, str.length), chars);
-            }
-        }
-        if (!chars) { // fail to get unichar..
-            containsJoiner = YES;
-        } else {
-            for (int i = 0, max = (int)str.length; i < max; i++) {
-                if (chars[i] == 0x200D) { // 'ZERO WIDTH JOINER' (U+200D)
-                    containsJoiner = YES;
-                    break;
-                }
-            }
-            if (needFree) free(chars);
-        }
-    }
-    if (!containsJoiner) return;
-    
-    // NSRegularExpression is designed to be immutable and thread safe.
-    static NSRegularExpression *regex;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        regex = [NSRegularExpression regularExpressionWithPattern:@"((👨‍👩‍👧‍👦|👨‍👩‍👦‍👦|👨‍👩‍👧‍👧|👩‍👩‍👧‍👦|👩‍👩‍👦‍👦|👩‍👩‍👧‍👧|👨‍👨‍👧‍👦|👨‍👨‍👦‍👦|👨‍👨‍👧‍👧)+|(👨‍👩‍👧|👩‍👩‍👦|👩‍👩‍👧|👨‍👨‍👦|👨‍👨‍👧))" options:kNilOptions error:nil];
-    });
-    
-    UIColor *clear = [UIColor clearColor];
-    [regex enumerateMatchesInString:str options:kNilOptions range:NSMakeRange(0, str.length) usingBlock:^(NSTextCheckingResult *result, NSMatchingFlags flags, BOOL *stop) {
-        [self yy_setColor:clear range:result.range];
-    }];
 }
 
 - (void)yy_removeDiscontinuousAttributesInRange:(NSRange)range {

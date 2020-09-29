@@ -23,22 +23,6 @@
 #import "UIPasteboard+YYText.h"
 #import "UIView+YYText.h"
 
-
-static double _YYDeviceSystemVersion() {
-    static double version;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        version = [UIDevice currentDevice].systemVersion.doubleValue;
-    });
-    return version;
-}
-
-#ifndef kSystemVersion
-#define kSystemVersion _YYDeviceSystemVersion()
-#endif
-
-
-
 #define kDefaultUndoLevelMax 20 // Default maximum undo level
 
 #define kAutoScrollMinimumDuration 0.1 // Time in seconds to tick auto-scroll.
@@ -88,7 +72,7 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
 @end
 
 
-@interface YYTextView () <UIScrollViewDelegate, UIAlertViewDelegate, YYTextDebugTarget, YYTextKeyboardObserver> {
+@interface YYTextView () <UIScrollViewDelegate, YYTextDebugTarget, YYTextKeyboardObserver> {
     
     YYTextRange *_selectedTextRange; /// nonnull
     YYTextRange *_markedTextRange;
@@ -321,7 +305,7 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
          I can't find the reason. Here's a workaround.
          */
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.02 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            [[YYTextEffectWindow sharedWindow] showSelectionDot:_selectionView];
+            [[YYTextEffectWindow sharedWindow] showSelectionDot:self->_selectionView];
         });
     }
     [[YYTextEffectWindow sharedWindow] showSelectionDot:_selectionView];
@@ -621,10 +605,10 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
     if (self.isFirstResponder || _containerView.isFirstResponder) {
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.01 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
             UIMenuController *menu = [UIMenuController sharedMenuController];
-            [menu setTargetRect:CGRectStandardize(rect) inView:_selectionView];
+            [menu setTargetRect:CGRectStandardize(rect) inView:self->_selectionView];
             [menu update];
-            if (!_state.showingMenu || !menu.menuVisible) {
-                _state.showingMenu = YES;
+            if (!self->_state.showingMenu || !menu.menuVisible) {
+                self->_state.showingMenu = YES;
                 [menu setMenuVisible:YES animated:YES];
             }
         });
@@ -759,8 +743,8 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
         _insetModifiedByKeyboard = NO;
         if (animated) {
             [UIView animateWithDuration:0.25 delay:0 options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionAllowUserInteraction | UIViewAnimationCurveEaseOut  animations:^{
-                [super setContentInset:_originalContentInset];
-                [super setScrollIndicatorInsets:_originalScrollIndicatorInsets];
+                [super setContentInset:self->_originalContentInset];
+                [super setScrollIndicatorInsets:self->_originalScrollIndicatorInsets];
             } completion:NULL];
         } else {
             [super setContentInset:_originalContentInset];
@@ -774,12 +758,12 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
     if (!self.isFirstResponder) return;
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         if ([YYTextKeyboardManager defaultManager].keyboardVisible) {
-            [self _scrollRangeToVisible:_selectedTextRange];
+            [self _scrollRangeToVisible:self->_selectedTextRange];
         } else {
             [self _restoreInsetsAnimated:YES];
         }
         [self _updateMagnifier];
-        if (_state.showingMenu) {
+        if (self->_state.showingMenu) {
             [self _showMenu];
         }
     });
@@ -963,15 +947,15 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
             [UIView animateWithDuration:kAutoScrollMinimumDuration delay:0 options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionCurveLinear animations:^{
                 [self setContentOffset:offset];
             } completion:^(BOOL finished) {
-                if (_state.trackingTouch) {
-                    if (_state.trackingGrabber) {
+                if (self->_state.trackingTouch) {
+                    if (self->_state.trackingGrabber) {
                         [self _showMagnifierRanged];
                         [self _updateTextRangeByTrackingGrabber];
-                    } else if (_state.trackingPreSelect) {
+                    } else if (self->_state.trackingPreSelect) {
                         [self _showMagnifierCaret];
                         [self _updateTextRangeByTrackingPreSelect];
-                    } else if (_state.trackingCaret) {
-                        if (_markedTextRange) {
+                    } else if (self->_state.trackingCaret) {
+                        if (self->_markedTextRange) {
                             [self _showMagnifierRanged];
                         } else {
                             [self _showMagnifierCaret];
@@ -3171,20 +3155,6 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
 
 - (void)keyboardChangedWithTransition:(YYTextKeyboardTransition)transition {
     [self _keyboardChanged];
-}
-
-#pragma mark - @protocol UIALertViewDelegate
-
-- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
-    NSString *title = [alertView buttonTitleAtIndex:buttonIndex];
-    if (title.length == 0) return;
-    NSArray *strings = [self _localizedUndoStrings];
-    if ([title isEqualToString:strings[1]] || [title isEqualToString:strings[2]]) {
-        [self _redo];
-    } else if ([title isEqualToString:strings[3]] || [title isEqualToString:strings[4]]) {
-        [self _undo];
-    }
-    [self _restoreFirstResponderAfterUndoAlert];
 }
 
 #pragma mark - @protocol UIKeyInput

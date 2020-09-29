@@ -179,11 +179,11 @@ static dispatch_queue_t YYLabelGetReleaseQueue() {
             CGRect rect = [self._innerLayout rectForRange:range];
             rect = [self _convertRectFromLayout:rect];
             longPressAction(self, _innerText, _highlightRange, rect);
-            [self _removeHighlightAnimated:YES];
+            [self _removeHighlightAnimated:_fadeOnHighlight];
             _state.trackingTouch = NO;
         } else if (self.allowCustomControlEvent || longPressResponse) {
             /// ⚠️⚠️⚠️ LYH Support
-            [self _removeHighlightAnimated:YES];
+            [self _removeHighlightAnimated:_fadeOnHighlight];
             _state.trackingTouch = NO;
         }
     }
@@ -249,7 +249,7 @@ static dispatch_queue_t YYLabelGetReleaseQueue() {
 
 - (void)_endTouch {
     [self _endLongPressTimer];
-    [self _removeHighlightAnimated:YES];
+    [self _removeHighlightAnimated:_fadeOnHighlight];
     _state.trackingTouch = NO;
 }
 
