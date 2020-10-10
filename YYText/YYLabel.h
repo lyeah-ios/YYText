@@ -379,6 +379,7 @@ IB_DESIGNABLE
 @property (nonatomic) BOOL fadeOnAsynchronouslyDisplay;
 @property (nonatomic) BOOL fadeOnHighlight;
 @property (nonatomic) BOOL ignoreCommonProperties;
+@property (nonatomic) BOOL allowCustomControlEvent;
 @end
 #endif // !TARGET_INTERFACE_BUILDER
 
