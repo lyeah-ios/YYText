@@ -449,7 +449,7 @@ return style. _attr_;
 }
 
 - (YYTextBorder *)yy_textBackgroundBorderAtIndex:(NSUInteger)index {
-    return [self yy_attribute:YYTextBackedStringAttributeName atIndex:index];
+    return [self yy_attribute:YYTextBackgroundBorderAttributeName atIndex:index];
 }
 
 - (CGAffineTransform)yy_textGlyphTransform {

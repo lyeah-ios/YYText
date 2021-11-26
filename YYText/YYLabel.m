@@ -154,8 +154,6 @@ static dispatch_queue_t YYLabelGetReleaseQueue() {
 
 - (void)_trackDidLongPress {
     [self _endLongPressTimer];
-    /// ⚠️⚠️⚠️ LYH Support: The click event will no longer be triggered after the long press event response @Aodan
-    BOOL longPressResponse = NO;
     if (_state.hasLongPressAction && _textLongPressAction) {
         NSRange range = NSMakeRange(NSNotFound, 0);
         CGRect rect = CGRectNull;
@@ -168,7 +166,6 @@ static dispatch_queue_t YYLabelGetReleaseQueue() {
             rect = textRect;
         }
         _textLongPressAction(self, _innerText, range, rect);
-        longPressResponse = YES;
     }
     if (_highlight) {
         YYTextAction longPressAction = _highlight.longPressAction ? _highlight.longPressAction : _highlightLongPressAction;
@@ -181,8 +178,8 @@ static dispatch_queue_t YYLabelGetReleaseQueue() {
             longPressAction(self, _innerText, _highlightRange, rect);
             [self _removeHighlightAnimated:_fadeOnHighlight];
             _state.trackingTouch = NO;
-        } else if (_allowCustomControlEvent || longPressResponse) {
-            /// ⚠️⚠️⚠️ LYH Support
+        } else if (_state.hasLongPressAction && _textLongPressAction) {
+            /// ⚠️⚠️⚠️ LYH Support : The click event will no longer be triggered after the long press event response @Aodan
             [self _removeHighlightAnimated:_fadeOnHighlight];
             _state.trackingTouch = NO;
         }
@@ -413,7 +410,6 @@ static dispatch_queue_t YYLabelGetReleaseQueue() {
     _clearContentsBeforeAsynchronouslyDisplay = YES;
     _fadeOnAsynchronouslyDisplay = YES;
     _fadeOnHighlight = YES;
-    _allowCustomControlEvent = NO;
     
     self.isAccessibilityElement = YES;
 }
@@ -539,23 +535,6 @@ static dispatch_queue_t YYLabelGetReleaseQueue() {
 }
 
 #pragma mark - Touches
-
-#pragma mark - ⚠️⚠️⚠️ LYH Support
-
-/// Makes the view behind the highlighted area clickable @ZhangXiaogang @Aodan @LuWenlong
-- (BOOL)pointInside:(CGPoint)point withEvent:(UIEvent *)event
-{
-    BOOL result = NO;
-    if (_allowCustomControlEvent) {
-        result = [super pointInside:point withEvent:event];
-    } else {
-        NSRange range;
-        if ([self _getHighlightAtPoint:point range:&range]) {
-            result = YES;
-        }
-    }
-    return result;
-}
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
     [self _updateIfNeeded];
