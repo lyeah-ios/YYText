@@ -187,6 +187,13 @@ static int _YYTextKeyboardViewFrameObserverKey;
             [windowName hasSuffix:@"RemoteKeyboardWindow"]) {
             if (!kbWindows) kbWindows = [NSMutableArray new];
             [kbWindows addObject:window];
+        } else if (windowName.length == 19 &&
+                   [windowName hasPrefix:@"UI"] &&
+                   [windowName hasSuffix:@"TextEffectsWindow"]) {
+            //参考 https://github.com/Tencent/QMUI_iOS/blob/4.6.0/QMUIKit/QMUIComponents/QMUIKeyboardManager.m
+            if (!kbWindows) kbWindows = [NSMutableArray new];
+            [kbWindows addObject:window];
+            break;
         }
     }
     
@@ -251,27 +258,47 @@ static int _YYTextKeyboardViewFrameObserverKey;
     // Get the window
     NSString *windowName = NSStringFromClass(window.class);
     // UIRemoteKeyboardWindow
-    if (windowName.length != 22) return nil;
-    if (![windowName hasPrefix:@"UI"]) return nil;
-    if (![windowName hasSuffix:@"RemoteKeyboardWindow"]) return nil;
-    
-    // Get the view
-    // UIInputSetContainerView
-    for (UIView *view in window.subviews) {
-        NSString *viewName = NSStringFromClass(view.class);
-        if (viewName.length != 23) continue;
-        if (![viewName hasPrefix:@"UI"]) continue;
-        if (![viewName hasSuffix:@"InputSetContainerView"]) continue;
-        // UIInputSetHostView
-        for (UIView *subView in view.subviews) {
-            NSString *subViewName = NSStringFromClass(subView.class);
-            if (subViewName.length != 18) continue;
-            if (![subViewName hasPrefix:@"UI"]) continue;
-            if (![subViewName hasSuffix:@"InputSetHostView"]) continue;
-            return subView;
+    //参考 https://github.com/Tencent/QMUI_iOS/blob/4.6.0/QMUIKit/QMUIComponents/QMUIKeyboardManager.m
+    if (windowName.length == 22 &&
+        [windowName hasPrefix:@"UI"] &&
+        [windowName hasSuffix:@"RemoteKeyboardWindow"]) {
+        // Get the view
+        // UIInputSetContainerView
+        for (UIView *view in window.subviews) {
+            NSString *viewName = NSStringFromClass(view.class);
+            if (viewName.length != 23) continue;
+            if (![viewName hasPrefix:@"UI"]) continue;
+            if (![viewName hasSuffix:@"InputSetContainerView"]) continue;
+            // UIInputSetHostView
+            for (UIView *subView in view.subviews) {
+                NSString *subViewName = NSStringFromClass(subView.class);
+                if (subViewName.length != 18) continue;
+                if (![subViewName hasPrefix:@"UI"]) continue;
+                if (![subViewName hasSuffix:@"InputSetHostView"]) continue;
+                return subView;
+            }
+        }
+    } else if (windowName.length == 19 &&
+               [windowName hasPrefix:@"UI"] &&
+               [windowName hasSuffix:@"TextEffectsWindow"]) {
+        // Get the view
+        // UIInputSetContainerView
+        for (UIView *view in window.subviews) {
+            NSString *viewName = NSStringFromClass(view.class);
+            if (viewName.length != 23) continue;
+            if (![viewName hasPrefix:@"UI"]) continue;
+            if (![viewName hasSuffix:@"InputSetContainerView"]) continue;
+            // UIInputSetHostView
+            for (UIView *subView in view.subviews) {
+                NSString *subViewName = NSStringFromClass(subView.class);
+                if (subViewName.length != 18) continue;
+                if (![subViewName hasPrefix:@"UI"]) continue;
+                if (![subViewName hasSuffix:@"InputSetHostView"]) continue;
+                if (subView.subviews.count == 0) continue;
+                return subView;
+            }
         }
     }
-    
     return nil;
 }
 
