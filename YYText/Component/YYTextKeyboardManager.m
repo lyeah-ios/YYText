@@ -179,26 +179,25 @@ static int _YYTextKeyboardViewFrameObserverKey;
     window = app.keyWindow;
     if ([self _getKeyboardViewFromWindow:window]) return window;
     
-    NSMutableArray *kbWindows = nil;
+    UIWindow *kbWindow = nil;
+    //参考 https://github.com/Tencent/QMUI_iOS/blob/4.6.0/QMUIKit/QMUIComponents/QMUIKeyboardManager.m
     for (window in app.windows) {
         NSString *windowName = NSStringFromClass(window.class);
         if (windowName.length == 22 &&
             [windowName hasPrefix:@"UI"] &&
             [windowName hasSuffix:@"RemoteKeyboardWindow"]) {
-            if (!kbWindows) kbWindows = [NSMutableArray new];
-            [kbWindows addObject:window];
+            kbWindow = window;
+            break;
         } else if (windowName.length == 19 &&
                    [windowName hasPrefix:@"UI"] &&
                    [windowName hasSuffix:@"TextEffectsWindow"]) {
-            //参考 https://github.com/Tencent/QMUI_iOS/blob/4.6.0/QMUIKit/QMUIComponents/QMUIKeyboardManager.m
-            if (!kbWindows) kbWindows = [NSMutableArray new];
-            [kbWindows addObject:window];
+            kbWindow = window;
             break;
         }
     }
     
-    if (kbWindows.count == 1) {
-        return kbWindows.firstObject;
+    if (kbWindow) {
+        return kbWindow;
     }
     return nil;
 }
@@ -278,9 +277,10 @@ static int _YYTextKeyboardViewFrameObserverKey;
                 return subView;
             }
         }
-    } else if (windowName.length == 19 &&
-               [windowName hasPrefix:@"UI"] &&
-               [windowName hasSuffix:@"TextEffectsWindow"]) {
+    }
+    if (windowName.length == 19 &&
+        [windowName hasPrefix:@"UI"] &&
+        [windowName hasSuffix:@"TextEffectsWindow"]) {
         // Get the view
         // UIInputSetContainerView
         for (UIView *view in window.subviews) {
