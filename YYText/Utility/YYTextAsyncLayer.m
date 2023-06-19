@@ -193,6 +193,20 @@ static dispatch_queue_t YYTextAsyncLayerGetReleaseQueue() {
     } else {
         [_sentinel increase];
         if (task.willDisplay) task.willDisplay(self);
+        /// Fix: 在 iOS 17 beta 中，width 和 height 不能为 0，否则会闪退
+        /// Assertion failure in void _UIGraphicsBeginImageContextWithOptions(CGSize, BOOL, CGFloat, BOOL)(), UIGraphics.m:410
+        /// 不过 UIGraphicsBeginImageContextWithOptions 即将废弃，如果使用 UIGraphicsImageRenderer 则不会出现这个问题
+        /// 但是修改成本很高，项目很多地方都用了 UIGraphicsBeginImageContextWithOptions
+        /// 所以这里参照上面异步的逻辑补充下面的判断
+        if (self.bounds.size.width < 1 || self.bounds.size.height < 1) {
+            CGImageRef image = (__bridge_retained CGImageRef)(self.contents);
+            self.contents = nil;
+            if (image) {
+                CGImageRelease(image);
+            }
+            if (task.didDisplay) task.didDisplay(self, YES);
+            return;
+        }
         UIGraphicsBeginImageContextWithOptions(self.bounds.size, self.opaque, self.contentsScale);
         CGContextRef context = UIGraphicsGetCurrentContext();
         if (self.opaque && context) {
