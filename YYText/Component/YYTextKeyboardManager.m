@@ -282,20 +282,36 @@ static int _YYTextKeyboardViewFrameObserverKey;
         [windowName hasPrefix:@"UI"] &&
         [windowName hasSuffix:@"TextEffectsWindow"]) {
         // Get the view
-        // UIInputSetContainerView
         for (UIView *view in window.subviews) {
             NSString *viewName = NSStringFromClass(view.class);
-            if (viewName.length != 23) continue;
-            if (![viewName hasPrefix:@"UI"]) continue;
-            if (![viewName hasSuffix:@"InputSetContainerView"]) continue;
-            // UIInputSetHostView
-            for (UIView *subView in view.subviews) {
-                NSString *subViewName = NSStringFromClass(subView.class);
-                if (subViewName.length != 18) continue;
-                if (![subViewName hasPrefix:@"UI"]) continue;
-                if (![subViewName hasSuffix:@"InputSetHostView"]) continue;
-                if (subView.subviews.count == 0) continue;
-                return subView;
+            if (viewName.length == 23 &&
+                [viewName hasPrefix:@"UI"] &&
+                [viewName hasSuffix:@"InputSetContainerView"]) {
+                // UIInputSetContainerView
+                for (UIView *subView in view.subviews) {
+                    // UIInputSetHostView
+                    NSString *subViewName = NSStringFromClass(subView.class);
+                    if (subViewName.length != 18) continue;
+                    if (![subViewName hasPrefix:@"UI"]) continue;
+                    if (![subViewName hasSuffix:@"InputSetHostView"]) continue;
+                    if (subView.subviews.count == 0) continue;
+                    return subView;
+                }
+            } else if (viewName.length == 20 &&
+                       [viewName hasPrefix:@"UI"] &&
+                       [viewName hasSuffix:@"TrackingWindowView"]) {
+                // iOS 26 UITrackingWindowView
+                for (UIView *subView in view.subviews) {
+                    // iOS 26 UIKeyboardItemContainerView
+                    NSString *subViewName = NSStringFromClass(subView.class);
+                    if (subViewName.length != 27) continue;
+                    if (![subViewName hasPrefix:@"UI"]) continue;
+                    if (![subViewName hasSuffix:@"KeyboardItemContainerView"]) continue;
+                    if (subView.subviews.count == 0) continue;
+                    return subView;
+                }
+            } else {
+                continue;
             }
         }
     }
