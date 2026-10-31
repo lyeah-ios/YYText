@@ -20,9 +20,6 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor whiteColor];
-    if ([self respondsToSelector:@selector(setAutomaticallyAdjustsScrollViewInsets:)]) {
-        self.automaticallyAdjustsScrollViewInsets = NO;
-    }
     
     NSMutableAttributedString *text = [NSMutableAttributedString new];
     NSArray *tags = @[@"◉red", @"◉orange", @"◉yellow", @"◉green", @"◉blue", @"◉purple", @"◉gray"];
@@ -77,8 +74,9 @@
     
     YYTextView *textView = [YYTextView new];
     textView.attributedText = text;
-    textView.size = self.view.size;
-    textView.textContainerInset = UIEdgeInsetsMake(10 + 64, 10, 10, 10);
+    textView.translatesAutoresizingMaskIntoConstraints = NO;
+    textView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+    textView.textContainerInset = UIEdgeInsetsMake(10, 10, 10, 10);
     textView.allowsCopyAttributedString = YES;
     textView.allowsPasteAttributedString = YES;
     textView.delegate = self;
@@ -86,6 +84,12 @@
     textView.scrollIndicatorInsets = textView.contentInset;
     textView.selectedRange = NSMakeRange(text.length, 0);
     [self.view addSubview:textView];
+    [NSLayoutConstraint activateConstraints:@[
+        [textView.leadingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.leadingAnchor],
+        [textView.trailingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.trailingAnchor],
+        [textView.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor],
+        [textView.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor]
+    ]];
     self.textView = textView;
     
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.6 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{

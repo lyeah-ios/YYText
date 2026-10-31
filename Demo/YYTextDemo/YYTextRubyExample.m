@@ -24,9 +24,6 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor whiteColor];
-    if ([self respondsToSelector:@selector(setAutomaticallyAdjustsScrollViewInsets:)]) {
-        self.automaticallyAdjustsScrollViewInsets = NO;
-    }
     
     
     NSMutableAttributedString *text = [NSMutableAttributedString new];
@@ -85,15 +82,18 @@
     
     YYLabel *label = [YYLabel new];
     label.attributedText = text;
-    label.width = self.view.width - 60;
-    label.centerX = self.view.width / 2;
-    label.height = self.view.height - 64  - 60;
-    label.top = 64 + 30;
+    label.translatesAutoresizingMaskIntoConstraints = NO;
     label.textAlignment = NSTextAlignmentCenter;
     label.textVerticalAlignment = YYTextVerticalAlignmentCenter;
     label.numberOfLines = 0;
     label.backgroundColor = [UIColor colorWithWhite:0.933 alpha:1.000];
     [self.view addSubview:label];
+    [NSLayoutConstraint activateConstraints:@[
+        [label.leadingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.leadingAnchor constant:30],
+        [label.trailingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.trailingAnchor constant:-30],
+        [label.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:30],
+        [label.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor constant:-30]
+    ]];
     
 }
 

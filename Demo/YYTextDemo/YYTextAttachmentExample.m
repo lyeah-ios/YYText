@@ -18,6 +18,7 @@
 
 @interface YYTextAttachmentExample ()<UIGestureRecognizerDelegate>
 @property (nonatomic, strong) YYLabel *label;
+@property (nonatomic, assign) CGSize containerSize;
 @end
 
 @implementation YYTextAttachmentExample
@@ -91,7 +92,6 @@
     _label.numberOfLines = 0;
     _label.textVerticalAlignment = YYTextVerticalAlignmentTop;
     _label.size = CGSizeMake(260, 260);
-    _label.center = CGPointMake(self.view.width / 2, self.view.height / 2);
     _label.attributedText = text;
     [self addSeeMoreButton];
     [self.view addSubview:_label];
@@ -115,6 +115,15 @@
     };
     gesture.delegate = self;
     [_label addGestureRecognizer:gesture];
+}
+
+- (void)viewDidLayoutSubviews {
+    [super viewDidLayoutSubviews];
+    CGRect container = self.view.safeAreaLayoutGuide.layoutFrame;
+    if (!CGSizeEqualToSize(self.containerSize, container.size)) {
+        self.containerSize = container.size;
+        self.label.center = CGPointMake(CGRectGetMidX(container), CGRectGetMidY(container));
+    }
 }
 
 - (void)addSeeMoreButton {

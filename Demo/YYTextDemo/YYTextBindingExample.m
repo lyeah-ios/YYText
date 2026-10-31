@@ -58,9 +58,6 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor whiteColor];
-    if ([self respondsToSelector:@selector(setAutomaticallyAdjustsScrollViewInsets:)]) {
-        self.automaticallyAdjustsScrollViewInsets = NO;
-    }
     
     NSMutableAttributedString *text = [[NSMutableAttributedString alloc] initWithString:@"sjobs@apple.com, apple@apple.com, banana@banana.com, pear@pear.com "];
     text.yy_font = [UIFont systemFontOfSize:17];
@@ -70,13 +67,19 @@
     YYTextView *textView = [YYTextView new];
     textView.attributedText = text;
     textView.textParser = [YYTextExampleEmailBindingParser new];
-    textView.size = self.view.size;
+    textView.translatesAutoresizingMaskIntoConstraints = NO;
+    textView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
     textView.textContainerInset = UIEdgeInsetsMake(10, 10, 10, 10);
     textView.delegate = self;
     textView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
-    textView.contentInset = UIEdgeInsetsMake(64, 0, 0, 0);
     textView.scrollIndicatorInsets = textView.contentInset;
     [self.view addSubview:textView];
+    [NSLayoutConstraint activateConstraints:@[
+        [textView.leadingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.leadingAnchor],
+        [textView.trailingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.trailingAnchor],
+        [textView.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor],
+        [textView.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor]
+    ]];
     self.textView = textView;
     [self.textView becomeFirstResponder];
     

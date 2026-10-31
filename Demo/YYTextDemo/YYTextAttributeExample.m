@@ -223,14 +223,18 @@
     
     YYLabel *label = [YYLabel new];
     label.attributedText = text;
-    label.width = self.view.width;
-    label.height = self.view.height - 64;
-    label.top = 64;
+    label.translatesAutoresizingMaskIntoConstraints = NO;
     label.textAlignment = NSTextAlignmentCenter;
     label.textVerticalAlignment = YYTextVerticalAlignmentCenter;
     label.numberOfLines = 0;
     label.backgroundColor = [UIColor colorWithWhite:0.933 alpha:1.000];
     [self.view addSubview:label];
+    [NSLayoutConstraint activateConstraints:@[
+        [label.leadingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.leadingAnchor],
+        [label.trailingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.trailingAnchor],
+        [label.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor],
+        [label.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor]
+    ]];
     
     /*
      If the 'highlight.tapAction' is not nil, the label will invoke 'highlight.tapAction' 
@@ -260,16 +264,17 @@
     label.textColor = [UIColor whiteColor];
     label.backgroundColor = [UIColor colorWithRed:0.033 green:0.685 blue:0.978 alpha:0.730];
     label.width = self.view.width;
+    label.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     label.textContainerInset = UIEdgeInsetsMake(padding, padding, padding, padding);
     label.height = [msg heightForFont:label.font width:label.width] + 2 * padding;
     
-    label.bottom = 64;
+    label.bottom = self.view.safeAreaInsets.top;
     [self.view addSubview:label];
     [UIView animateWithDuration:0.3 animations:^{
-        label.top = 64;
+        label.top = self.view.safeAreaInsets.top;
     } completion:^(BOOL finished) {
         [UIView animateWithDuration:0.2 delay:2 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-            label.bottom = 64;
+            label.bottom = self.view.safeAreaInsets.top;
         } completion:^(BOOL finished) {
             [label removeFromSuperview];
         }];

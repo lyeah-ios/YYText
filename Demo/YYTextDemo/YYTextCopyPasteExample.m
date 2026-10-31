@@ -24,9 +24,6 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor whiteColor];
-    if ([self respondsToSelector:@selector(setAutomaticallyAdjustsScrollViewInsets:)]) {
-        self.automaticallyAdjustsScrollViewInsets = NO;
-    }
     
     
     NSString *text = @"You can copy image from browser or photo album and paste it to here. It support animated GIF and APNG. \n\nYou can also copy attributed string from other YYTextView.\n";
@@ -37,15 +34,21 @@
     YYTextView *textView = [YYTextView new];
     textView.text = text;
     textView.font = [UIFont systemFontOfSize:17];
-    textView.size = self.view.size;
+    textView.translatesAutoresizingMaskIntoConstraints = NO;
+    textView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
     textView.textContainerInset = UIEdgeInsetsMake(10, 10, 10, 10);
     textView.delegate = self;
     textView.allowsPasteImage = YES; /// Pasts image
     textView.allowsPasteAttributedString = YES; /// Paste attributed string
     textView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
-    textView.contentInset = UIEdgeInsetsMake(64, 0, 0, 0);
     textView.scrollIndicatorInsets = textView.contentInset;
     [self.view addSubview:textView];
+    [NSLayoutConstraint activateConstraints:@[
+        [textView.leadingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.leadingAnchor],
+        [textView.trailingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.trailingAnchor],
+        [textView.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor],
+        [textView.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor]
+    ]];
     self.textView = textView;
     
     textView.selectedRange = NSMakeRange(text.length, 0);
