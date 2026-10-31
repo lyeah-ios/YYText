@@ -22,7 +22,7 @@
 
 @interface YYTextAsyncExampleCell : UITableViewCell
 @property (nonatomic, assign) BOOL async;
-- (void)setAyncText:(NSAttributedString *)text;
+- (void)setAyncText:(id)text;
 @end
 
 
@@ -36,18 +36,23 @@
     _uiLabel = [UILabel new];
     _uiLabel.font = [UIFont systemFontOfSize:8];
     _uiLabel.numberOfLines = 0;
-    _uiLabel.size = CGSizeMake(kScreenWidth, kCellHeight);
     
     _yyLabel = [YYLabel new];
     _yyLabel.font = _uiLabel.font;
     _yyLabel.numberOfLines = _uiLabel.numberOfLines;
-    _yyLabel.size = _uiLabel.size;
     _yyLabel.displaysAsynchronously = YES; /// enable async display
+    _yyLabel.ignoreCommonProperties = YES;
     _yyLabel.hidden = YES;
     
     [self.contentView addSubview:_uiLabel];
     [self.contentView addSubview:_yyLabel];
     return self;
+}
+
+- (void)layoutSubviews {
+    [super layoutSubviews];
+    _uiLabel.frame = self.contentView.bounds;
+    _yyLabel.frame = self.contentView.bounds;
 }
 
 - (void)setAsync:(BOOL)async {
@@ -74,6 +79,7 @@
 @property (nonatomic, strong) NSArray *strings;
 @property (nonatomic, strong) NSArray *layouts;
 @property (nonatomic, strong) UITableView *tableView;
+@property (nonatomic, assign) CGFloat layoutWidth;
 @end
 
 @implementation YYTextAsyncExample
@@ -81,7 +87,8 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.tableView = [UITableView new];
-    self.tableView.frame = self.view.bounds;
+    self.tableView.translatesAutoresizingMaskIntoConstraints = NO;
+    self.tableView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
     self.tableView.delegate = self;
     self.tableView.dataSource = self;
     [self.tableView registerClass:[YYTextAsyncExampleCell class] forCellReuseIdentifier:@"id"];
@@ -90,7 +97,6 @@
     
     
     NSMutableArray *strings = [NSMutableArray new];
-    NSMutableArray *layouts = [NSMutableArray new];
     for (int i = 0; i < 300; i++) {
         NSString *str = [NSString stringWithFormat:@"%d Async Display Test ✺◟(∗❛ัᴗ❛ั∗)◞✺ ✺◟(∗❛ัᴗ❛ั∗)◞✺ 😀😖😐😣😡🚖🚌🚋🎊💖💗💛💙🏨🏦🏫 Async Display Test ✺◟(∗❛ัᴗ❛ั∗)◞✺ ✺◟(∗❛ัᴗ❛ั∗)◞✺ 😀😖😐😣😡🚖🚌🚋🎊💖💗💛💙🏨🏦🏫",i];
         
@@ -109,24 +115,28 @@
         shadow.shadowOffset = CGSizeMake(0, 1);
         [strings addObject:text];
         
-        // it better to do layout in background queue...
-        YYTextContainer *container = [YYTextContainer containerWithSize:CGSizeMake(kScreenWidth, kCellHeight)];
-        YYTextLayout *layout = [YYTextLayout layoutWithContainer:container text:text];
-        [layouts addObject:layout];
     }
     self.strings = strings;
-    self.layouts = layouts;
     
     
     
-    UIVisualEffectView *toolbar = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleExtraLight]];
-    toolbar.size = CGSizeMake(kScreenWidth, 40);
-    toolbar.top = 64;
+    UIVisualEffectView *toolbar = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterial]];
+    toolbar.translatesAutoresizingMaskIntoConstraints = NO;
     [self.view addSubview:toolbar];
+    [NSLayoutConstraint activateConstraints:@[
+        [toolbar.leadingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.leadingAnchor],
+        [toolbar.trailingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.trailingAnchor],
+        [toolbar.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor],
+        [toolbar.heightAnchor constraintEqualToConstant:40],
+        [self.tableView.topAnchor constraintEqualToAnchor:toolbar.bottomAnchor],
+        [self.tableView.leadingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.leadingAnchor],
+        [self.tableView.trailingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.trailingAnchor],
+        [self.tableView.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor]
+    ]];
     
     
     YYFPSLabel *fps = [YYFPSLabel new];
-    fps.centerY = toolbar.height / 2;
+    fps.centerY = 20;
     fps.left = 5;
     [toolbar.contentView addSubview:fps];
     
@@ -135,13 +145,13 @@
     label.text = @"UILabel/YYLabel(Async): ";
     label.font = [UIFont systemFontOfSize:14];
     [label sizeToFit];
-    label.centerY = toolbar.height / 2;
+    label.centerY = 20;
     label.left = fps.right + 10;
     [toolbar.contentView addSubview:label];
     
     UISwitch *switcher = [UISwitch new];
     [switcher sizeToFit];
-    switcher.centerY = toolbar.height / 2;
+    switcher.centerY = 20;
     switcher.left = label.right + 10;
     switcher.layer.transformScale = 0.7;
     __weak typeof(self) _self = self;
@@ -151,6 +161,22 @@
         [self setAsync:switcher.isOn];
     }];
     [toolbar.contentView addSubview:switcher];
+}
+
+- (void)viewDidLayoutSubviews {
+    [super viewDidLayoutSubviews];
+    [self.tableView layoutIfNeeded];
+    CGFloat width = self.tableView.visibleCells.firstObject.contentView.bounds.size.width;
+    if (width > 0 && width != self.layoutWidth) {
+        self.layoutWidth = width;
+        NSMutableArray *layouts = [NSMutableArray arrayWithCapacity:self.strings.count];
+        YYTextContainer *container = [YYTextContainer containerWithSize:CGSizeMake(width, kCellHeight)];
+        for (NSAttributedString *text in self.strings) {
+            [layouts addObject:[YYTextLayout layoutWithContainer:container text:text]];
+        }
+        self.layouts = layouts;
+        [self.tableView reloadData];
+    }
 }
 
 - (void)setAsync:(BOOL)async {
