@@ -25,15 +25,16 @@ NS_ASSUME_NONNULL_BEGIN
  A window to display magnifier and extra contents for text view.
  
  @discussion Use `sharedWindowForView:` to get the instance for the host view's scene,
- or `sharedWindow` for applications without scenes. Don't create your own instance.
+ or `sharedWindow` to find a foreground scene's key window. Requires UIScene.
+ Don't create your own instance.
  Typically, you should not use this class directly.
  */
 @interface YYTextEffectWindow : UIWindow
 
-/// Returns the shared instance (returns nil in App Extension).
+/// Returns the effect window for a foreground scene's key window, or nil if none exists or in App Extension.
 + (nullable instancetype)sharedWindow;
-/// Returns the effect window for the host view's scene, or the shared window in apps without scenes.
-/// Returns nil in App Extension or if the view has no window.
+/// Returns the effect window for the host view's scene.
+/// Returns nil in App Extension or if the view has no attached window scene.
 + (nullable instancetype)sharedWindowForView:(UIView *)view;
 
 /// Show the magnifier in this window with a 'popup' animation. @param mag A magnifier.

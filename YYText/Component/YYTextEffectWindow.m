@@ -22,31 +22,28 @@ static NSMutableDictionary<NSString *, YYTextEffectWindow *> *YYTextSceneEffectW
 + (instancetype)sharedWindowForView:(UIView *)view {
     if (YYTextIsAppExtension()) return nil;
     UIWindow *source = [view isKindOfClass:UIWindow.class] ? (UIWindow *)view : view.window;
-    if (!source) return nil;
     UIWindowScene *scene = source.windowScene;
-    if (scene) {
-        if (scene.activationState == UISceneActivationStateUnattached) return nil;
-        static dispatch_once_t onceToken;
-        dispatch_once(&onceToken, ^{
-            YYTextSceneEffectWindows = [NSMutableDictionary dictionary];
-            [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_sceneDisconnected:) name:UISceneDidDisconnectNotification object:nil];
-        });
-        NSString *identifier = scene.session.persistentIdentifier;
-        YYTextEffectWindow *window = YYTextSceneEffectWindows[identifier];
-        if (!window) {
-            window = [[self alloc] initWithWindowScene:scene];
-            window.userInteractionEnabled = NO;
-            window.windowLevel = UIWindowLevelStatusBar + 1;
-            window.opaque = NO;
-            window.backgroundColor = UIColor.clearColor;
-            window.layer.backgroundColor = UIColor.clearColor.CGColor;
-            YYTextSceneEffectWindows[identifier] = window;
-            window.hidden = NO;
-        }
-        return window;
+    if (!scene || scene.activationState == UISceneActivationStateUnattached) return nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        YYTextSceneEffectWindows = [NSMutableDictionary dictionary];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_sceneDisconnected:) name:UISceneDidDisconnectNotification object:nil];
+    });
+    NSString *identifier = scene.session.persistentIdentifier;
+    YYTextEffectWindow *window = YYTextSceneEffectWindows[identifier];
+    if (!window) {
+        window = [[self alloc] initWithWindowScene:scene];
+        window.userInteractionEnabled = NO;
+        window.windowLevel = UIWindowLevelStatusBar + 1;
+        window.opaque = NO;
+        window.backgroundColor = UIColor.clearColor;
+        window.layer.backgroundColor = UIColor.clearColor.CGColor;
+        window.rootViewController = [UIViewController new];
+        window.rootViewController.view.backgroundColor = UIColor.clearColor;
+        YYTextSceneEffectWindows[identifier] = window;
+        window.hidden = NO;
     }
-    if (YYTextSharedApplication().connectedScenes.count || [NSBundle.mainBundle objectForInfoDictionaryKey:@"UIApplicationSceneManifest"]) return nil;
-    return [self sharedWindow];
+    return window;
 }
 
 + (void)_sceneDisconnected:(NSNotification *)notification API_AVAILABLE(ios(13.0)) {
@@ -54,6 +51,7 @@ static NSMutableDictionary<NSString *, YYTextEffectWindow *> *YYTextSceneEffectW
     NSString *identifier = scene.session.persistentIdentifier;
     YYTextEffectWindow *window = YYTextSceneEffectWindows[identifier];
     window.hidden = YES;
+    window.rootViewController = nil;
     for (UIView *view in window.subviews.copy) [view removeFromSuperview];
     window.windowScene = nil;
     [YYTextSceneEffectWindows removeObjectForKey:identifier];
@@ -67,33 +65,7 @@ static NSMutableDictionary<NSString *, YYTextEffectWindow *> *YYTextSceneEffectW
             if (window.isKeyWindow) return [self sharedWindowForView:window];
         }
     }
-    if (app.connectedScenes.count || [NSBundle.mainBundle objectForInfoDictionaryKey:@"UIApplicationSceneManifest"]) return nil;
-    static YYTextEffectWindow *one = nil;
-    if (one == nil) {
-        // iOS 9 compatible
-        NSString *mode = [NSRunLoop currentRunLoop].currentMode;
-        if (mode.length == 27 &&
-            [mode hasPrefix:@"UI"] &&
-            [mode hasSuffix:@"InitializationRunLoopMode"]) {
-            return nil;
-        }
-    }
-    
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        if (!YYTextIsAppExtension()) {
-            one = [self new];
-            one.frame = (CGRect){.size = YYTextScreenSize()};
-            one.userInteractionEnabled = NO;
-            one.windowLevel = UIWindowLevelStatusBar + 1;
-            one.hidden = NO;
-            
-            one.opaque = NO;
-            one.backgroundColor = [UIColor clearColor];
-            one.layer.backgroundColor = [UIColor clearColor].CGColor;
-        }
-    });
-    return one;
+    return nil;
 }
 
 // stop self from becoming the KeyWindow
@@ -106,24 +78,7 @@ static NSMutableDictionary<NSString *, YYTextEffectWindow *> *YYTextSceneEffectW
 }
 
 - (NSArray<UIWindow *> *)_hostWindows {
-    if (self.windowScene) return self.windowScene.windows;
-    if (YYTextSharedApplication().connectedScenes.count || [NSBundle.mainBundle objectForInfoDictionaryKey:@"UIApplicationSceneManifest"]) return @[];
-    return YYTextSharedApplication().windows;
-}
-
-- (UIViewController *)rootViewController {
-    for (UIWindow *window in [self _hostWindows]) {
-        if (self == window) continue;
-        if (window.hidden) continue;
-        UIViewController *topViewController = window.rootViewController;
-        if (topViewController) return topViewController;
-    }
-    UIViewController *viewController = [super rootViewController];
-    if (!viewController) {
-        viewController = [UIViewController new];
-        [super setRootViewController:viewController];
-    }
-    return viewController;
+    return self.windowScene.windows ?: @[];
 }
 
 // Bring self to front

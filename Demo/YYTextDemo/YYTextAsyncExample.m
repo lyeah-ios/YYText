@@ -86,6 +86,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    self.view.backgroundColor = [UIColor whiteColor];
     self.tableView = [UITableView new];
     self.tableView.translatesAutoresizingMaskIntoConstraints = NO;
     self.tableView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
@@ -120,7 +121,7 @@
     
     
     
-    UIVisualEffectView *toolbar = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterial]];
+    UIVisualEffectView *toolbar = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleExtraLight]];
     toolbar.translatesAutoresizingMaskIntoConstraints = NO;
     [self.view addSubview:toolbar];
     [NSLayoutConstraint activateConstraints:@[

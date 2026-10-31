@@ -542,7 +542,13 @@ You can also install documentation locally using [appledoc](https://github.com/t
 Requirements
 ==============
 This library requires `iOS 13.0+` and Xcode with an iOS 13 or later SDK.
+Applications must adopt the UIScene window lifecycle.
 Build verification uses Xcode 26.6 with the iOS 26.5 SDK; the Xcode 8 Travis configuration is historical.
+
+### Migration to 3.0.0
+The minimum deployment target has changed from iOS 9.0 to iOS 13.0. Applications must adopt UIScene; legacy global-window integration is no longer supported for keyboard management and window effects.
+
+Known Demo issues: some text has insufficient contrast in Dark Mode. On the iOS 26 simulator, UIKit may log an out-of-range color warning during animations; its connection to a specific view has not been established.
 
 
 License
@@ -1091,7 +1097,13 @@ debugOptions.CGGlyphBorderColor = [UIColor colorWithRed:1.000 green:0.524 blue:0
 系统要求
 ==============
 该项目最低支持 `iOS 13.0`，需要包含 iOS 13 或更新 SDK 的 Xcode。
+集成应用必须采用 UIScene 窗口生命周期。
 构建验证使用 Xcode 26.6 和 iOS 26.5 SDK；仓库中的 Xcode 8 Travis 配置仅供历史参考。
+
+### 迁移至 3.0.0
+最低部署版本从 iOS 9.0 提升至 iOS 13.0。集成应用必须采用 UIScene；键盘管理和窗口特效不再支持传统全局窗口集成方式。
+
+Demo 已知问题：深色模式下部分文字对比度不足；iOS 26 模拟器上 UIKit 动画可能输出颜色分量越界警告，目前尚未确定与具体视图的关联。
 
 
 已知问题

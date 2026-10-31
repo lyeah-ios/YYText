@@ -43,7 +43,7 @@ typedef struct {
  and track the keyboard visible/frame/transition.
  
  @discussion You should access this class in main thread.
- Requires iOS 13 or later.
+ Requires iOS 13 or later and the UIScene window lifecycle.
  */
 @interface YYTextKeyboardManager : NSObject
 

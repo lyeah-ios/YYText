@@ -39,7 +39,7 @@
     [self initImageView];
     __weak typeof(self) _self = self;
     
-    UIVisualEffectView *toolbar = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterial]];
+    UIVisualEffectView *toolbar = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleExtraLight]];
     toolbar.translatesAutoresizingMaskIntoConstraints = NO;
     [self.view addSubview:toolbar];
     self.toolbar = toolbar;
@@ -74,7 +74,7 @@
     /*------------------------------ Toolbar ---------------------------------*/
     UILabel *label = [UILabel new];
     label.backgroundColor = [UIColor clearColor];
-    label.font = [UIFont systemFontOfSize:12];
+    label.font = [UIFont systemFontOfSize:14];
     label.text = @"Vertical:";
     UILabel *verticalLabel = label;
     
@@ -94,7 +94,7 @@
     
     label = [UILabel new];
     label.backgroundColor = [UIColor clearColor];
-    label.font = [UIFont systemFontOfSize:12];
+    label.font = [UIFont systemFontOfSize:14];
     label.text = @"Debug:";
     UILabel *debugLabel = label;
     
@@ -108,7 +108,7 @@
     
     label = [UILabel new];
     label.backgroundColor = [UIColor clearColor];
-    label.font = [UIFont systemFontOfSize:12];
+    label.font = [UIFont systemFontOfSize:14];
     label.text = @"Exclusion:";
     UILabel *exclusionLabel = label;
     
@@ -156,7 +156,7 @@
     self.textView.frame = frame;
     if (!self.imagePositioned && frame.size.width > 0 && frame.size.height > 0) {
         self.imagePositioned = YES;
-        self.imageView.center = CGPointMake(CGRectGetMidX(self.textView.bounds), CGRectGetMidY(self.textView.bounds));
+        self.imageView.center = CGPointMake(frame.size.width / 2, frame.size.width / 2);
     }
 }
 

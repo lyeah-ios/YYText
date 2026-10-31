@@ -17,7 +17,7 @@ static BOOL DebugEnabled = NO;
 
 + (void)addDebugOptionToViewController:(UIViewController *)vc {
     UISwitch *switcher = [UISwitch new];
-    switcher.layer.transform = CATransform3DMakeScale(0.8, 0.8, 0.8);
+    [switcher.layer setValue:@(0.8) forKeyPath:@"transform.scale"];
     
     [switcher setOn:DebugEnabled];
     [switcher addBlockForControlEvents:UIControlEventValueChanged block:^(UISwitch *sender) {
