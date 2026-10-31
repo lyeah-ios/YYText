@@ -90,6 +90,7 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
     YYTextSelectionView *_selectionView; ///< nonnull
     YYTextMagnifier *_magnifierCaret; ///< nonnull
     YYTextMagnifier *_magnifierRanged; ///< nonnull
+    YYTextEffectWindow *_effectWindow;
     
     NSMutableAttributedString *_typingAttributesHolder; ///< nonnull, typing attributes
     NSDataDetector *_dataDetector;
@@ -177,6 +178,33 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
 
 #pragma mark - Private
 
+- (YYTextEffectWindow *)_effectWindowForShowing {
+    if (!self.window) return nil;
+    YYTextEffectWindow *window = [YYTextEffectWindow sharedWindowForView:self];
+    if (_effectWindow != window) {
+        [_effectWindow hideSelectionDot:_selectionView];
+        [_magnifierCaret removeFromSuperview];
+        [_magnifierRanged removeFromSuperview];
+        _effectWindow = window;
+    }
+    return window;
+}
+
+- (void)willMoveToWindow:(UIWindow *)newWindow {
+    if (newWindow != self.window) {
+        [_effectWindow hideSelectionDot:_selectionView];
+        [_magnifierCaret.layer removeAllAnimations];
+        [_magnifierRanged.layer removeAllAnimations];
+        [_magnifierCaret removeFromSuperview];
+        [_magnifierRanged removeFromSuperview];
+        _state.showingMagnifierCaret = NO;
+        _state.showingMagnifierRanged = NO;
+        _effectWindow = nil;
+        [self _endSelectionDotFixTimer];
+    }
+    [super willMoveToWindow:newWindow];
+}
+
 /// Update layout and selection before runloop sleep/end.
 - (void)_commitUpdate {
 #if !TARGET_INTERFACE_BUILDER
@@ -247,7 +275,7 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
     _selectionView.caretBlinks = NO;
     _selectionView.caretVisible = NO;
     _selectionView.selectionRects = nil;
-    [[YYTextEffectWindow sharedWindow] hideSelectionDot:_selectionView];
+    [_effectWindow hideSelectionDot:_selectionView];
     if (!_innerLayout) return;
     
     NSMutableArray *allRects = [NSMutableArray new];
@@ -305,10 +333,10 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
          I can't find the reason. Here's a workaround.
          */
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.02 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            [[YYTextEffectWindow sharedWindow] showSelectionDot:self->_selectionView];
+            [[self _effectWindowForShowing] showSelectionDot:self->_selectionView];
         });
     }
-    [[YYTextEffectWindow sharedWindow] showSelectionDot:_selectionView];
+    [[self _effectWindowForShowing] showSelectionDot:_selectionView];
     
     if (containsDot) {
         [self _startSelectionDotFixTimer];
@@ -429,16 +457,16 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
     
     if (_state.showingMagnifierRanged) {
         _state.showingMagnifierRanged = NO;
-        [[YYTextEffectWindow sharedWindow] hideMagnifier:_magnifierRanged];
+        [_effectWindow hideMagnifier:_magnifierRanged];
     }
     
     _magnifierCaret.hostPopoverCenter = _trackingPoint;
     _magnifierCaret.hostCaptureCenter = _trackingPoint;
     if (!_state.showingMagnifierCaret) {
         _state.showingMagnifierCaret = YES;
-        [[YYTextEffectWindow sharedWindow] showMagnifier:_magnifierCaret];
+        [[self _effectWindowForShowing] showMagnifier:_magnifierCaret];
     } else {
-        [[YYTextEffectWindow sharedWindow] moveMagnifier:_magnifierCaret];
+        [_effectWindow moveMagnifier:_magnifierCaret];
     }
 }
 
@@ -453,7 +481,7 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
     
     if (_state.showingMagnifierCaret) {
         _state.showingMagnifierCaret = NO;
-        [[YYTextEffectWindow sharedWindow] hideMagnifier:_magnifierCaret];
+        [_effectWindow hideMagnifier:_magnifierCaret];
     }
     
     CGPoint magPoint = _trackingPoint;
@@ -509,9 +537,9 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
         _magnifierRanged.hostCaptureCenter = capturePoint;
         if (!_state.showingMagnifierRanged) {
             _state.showingMagnifierRanged = YES;
-            [[YYTextEffectWindow sharedWindow] showMagnifier:_magnifierRanged];
+            [[self _effectWindowForShowing] showMagnifier:_magnifierRanged];
         } else {
-            [[YYTextEffectWindow sharedWindow] moveMagnifier:_magnifierRanged];
+            [_effectWindow moveMagnifier:_magnifierRanged];
         }
     }
 }
@@ -521,10 +549,10 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
     if (YYTextIsAppExtension()) return;
     
     if (_state.showingMagnifierCaret) {
-        [[YYTextEffectWindow sharedWindow] moveMagnifier:_magnifierCaret];
+        [_effectWindow moveMagnifier:_magnifierCaret];
     }
     if (_state.showingMagnifierRanged) {
-        [[YYTextEffectWindow sharedWindow] moveMagnifier:_magnifierRanged];
+        [_effectWindow moveMagnifier:_magnifierRanged];
     }
 }
 
@@ -544,11 +572,11 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
     
     if (_state.showingMagnifierCaret) {
         _state.showingMagnifierCaret = NO;
-        [[YYTextEffectWindow sharedWindow] hideMagnifier:_magnifierCaret];
+        [_effectWindow hideMagnifier:_magnifierCaret];
     }
     if (_state.showingMagnifierRanged) {
         _state.showingMagnifierRanged = NO;
-        [[YYTextEffectWindow sharedWindow] hideMagnifier:_magnifierRanged];
+        [_effectWindow hideMagnifier:_magnifierRanged];
     }
 }
 
@@ -999,12 +1027,12 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
 /// Start a timer to fix the selection dot.
 - (void)_startSelectionDotFixTimer {
     [_selectionDotFixTimer invalidate];
-    _longPressTimer = [NSTimer timerWithTimeInterval:1/15.0
+    _selectionDotFixTimer = [NSTimer timerWithTimeInterval:1/15.0
                                               target:[YYTextWeakProxy proxyWithTarget:self]
                                             selector:@selector(_fixSelectionDot)
                                             userInfo:nil
                                              repeats:NO];
-    [[NSRunLoop currentRunLoop] addTimer:_longPressTimer forMode:NSRunLoopCommonModes];
+    [[NSRunLoop currentRunLoop] addTimer:_selectionDotFixTimer forMode:NSRunLoopCommonModes];
 }
 
 /// End the timer.
@@ -1017,11 +1045,12 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
 /// update the selection dot in window.
 - (void)_fixSelectionDot {
     if (YYTextIsAppExtension()) return;
-    CGPoint origin = [self yy_convertPoint:CGPointZero toViewOrWindow:[YYTextEffectWindow sharedWindow]];
+    if (!self.window || !_effectWindow) return;
+    CGPoint origin = [self yy_convertPoint:CGPointZero toViewOrWindow:_effectWindow];
     if (!CGPointEqualToPoint(origin, _previousOriginInWindow)) {
         _previousOriginInWindow = origin;
-        [[YYTextEffectWindow sharedWindow] hideSelectionDot:_selectionView];
-        [[YYTextEffectWindow sharedWindow] showSelectionDot:_selectionView];
+        [_effectWindow hideSelectionDot:_selectionView];
+        [[self _effectWindowForShowing] showSelectionDot:_selectionView];
     }
 }
 
@@ -1545,11 +1574,7 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
 
 /// Returns the `root` view controller (returns nil if not found).
 - (UIViewController *)_getRootViewController {
-    UIViewController *ctrl = nil;
-    UIApplication *app = YYTextSharedApplication();
-    if (!ctrl) ctrl = app.keyWindow.rootViewController;
-    if (!ctrl) ctrl = [app.windows.firstObject rootViewController];
-    if (!ctrl) ctrl = self.yy_viewController;
+    UIViewController *ctrl = self.yy_viewController ?: self.window.rootViewController;
     if (!ctrl) return nil;
     
     while (!ctrl.view.window && ctrl.presentedViewController) {
@@ -1986,9 +2011,9 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIPasteboardChangedNotification object:nil];
     [[YYTextKeyboardManager defaultManager] removeObserver:self];
     
-    [[YYTextEffectWindow sharedWindow] hideSelectionDot:_selectionView];
-    [[YYTextEffectWindow sharedWindow] hideMagnifier:_magnifierCaret];
-    [[YYTextEffectWindow sharedWindow] hideMagnifier:_magnifierRanged];
+    [_effectWindow hideSelectionDot:_selectionView];
+    [_magnifierCaret removeFromSuperview];
+    [_magnifierRanged removeFromSuperview];
     
     [YYTextDebugOption removeDebugTarget:self];
     
@@ -3063,7 +3088,7 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
-    [[YYTextEffectWindow sharedWindow] hideSelectionDot:_selectionView];
+    [_effectWindow hideSelectionDot:_selectionView];
     
     if ([_outerDelegate respondsToSelector:_cmd]) {
         [_outerDelegate scrollViewDidScroll:scrollView];
@@ -3090,7 +3115,7 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
 
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate {
     if (!decelerate) {
-        [[YYTextEffectWindow sharedWindow] showSelectionDot:_selectionView];
+        [[self _effectWindowForShowing] showSelectionDot:_selectionView];
     }
     
     if ([_outerDelegate respondsToSelector:_cmd]) {
@@ -3105,7 +3130,7 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
-    [[YYTextEffectWindow sharedWindow] showSelectionDot:_selectionView];
+    [[self _effectWindowForShowing] showSelectionDot:_selectionView];
     
     if ([_outerDelegate respondsToSelector:_cmd]) {
         [_outerDelegate scrollViewDidEndDecelerating:scrollView];

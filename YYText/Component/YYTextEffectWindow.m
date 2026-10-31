@@ -15,9 +15,63 @@
 #import "UIView+YYText.h"
 
 
+static NSMutableDictionary<NSString *, YYTextEffectWindow *> *YYTextSceneEffectWindows;
+
 @implementation YYTextEffectWindow
 
++ (instancetype)sharedWindowForView:(UIView *)view {
+    if (YYTextIsAppExtension()) return nil;
+    UIWindow *source = [view isKindOfClass:UIWindow.class] ? (UIWindow *)view : view.window;
+    if (!source) return nil;
+    if (@available(iOS 13.0, *)) {
+        UIWindowScene *scene = source.windowScene;
+        if (scene) {
+            if (scene.activationState == UISceneActivationStateUnattached) return nil;
+            static dispatch_once_t onceToken;
+            dispatch_once(&onceToken, ^{
+                YYTextSceneEffectWindows = [NSMutableDictionary dictionary];
+                [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_sceneDisconnected:) name:UISceneDidDisconnectNotification object:nil];
+            });
+            NSString *identifier = scene.session.persistentIdentifier;
+            YYTextEffectWindow *window = YYTextSceneEffectWindows[identifier];
+            if (!window) {
+                window = [[self alloc] initWithWindowScene:scene];
+                window.userInteractionEnabled = NO;
+                window.windowLevel = UIWindowLevelStatusBar + 1;
+                window.opaque = NO;
+                window.backgroundColor = UIColor.clearColor;
+                window.layer.backgroundColor = UIColor.clearColor.CGColor;
+                YYTextSceneEffectWindows[identifier] = window;
+                window.hidden = NO;
+            }
+            return window;
+        }
+        if (YYTextSharedApplication().connectedScenes.count || [NSBundle.mainBundle objectForInfoDictionaryKey:@"UIApplicationSceneManifest"]) return nil;
+    }
+    return [self sharedWindow];
+}
+
++ (void)_sceneDisconnected:(NSNotification *)notification API_AVAILABLE(ios(13.0)) {
+    UIScene *scene = notification.object;
+    NSString *identifier = scene.session.persistentIdentifier;
+    YYTextEffectWindow *window = YYTextSceneEffectWindows[identifier];
+    window.hidden = YES;
+    for (UIView *view in window.subviews.copy) [view removeFromSuperview];
+    window.windowScene = nil;
+    [YYTextSceneEffectWindows removeObjectForKey:identifier];
+}
+
 + (instancetype)sharedWindow {
+    if (@available(iOS 13.0, *)) {
+        UIApplication *app = YYTextSharedApplication();
+        for (UIScene *scene in app.connectedScenes) {
+            if (![scene isKindOfClass:UIWindowScene.class] || scene.activationState != UISceneActivationStateForegroundActive) continue;
+            for (UIWindow *window in ((UIWindowScene *)scene).windows) {
+                if (window.isKeyWindow) return [self sharedWindowForView:window];
+            }
+        }
+        if (app.connectedScenes.count || [NSBundle.mainBundle objectForInfoDictionaryKey:@"UIApplicationSceneManifest"]) return nil;
+    }
     static YYTextEffectWindow *one = nil;
     if (one == nil) {
         // iOS 9 compatible
@@ -48,12 +102,24 @@
 }
 
 // stop self from becoming the KeyWindow
+- (BOOL)canBecomeKeyWindow {
+    return NO;
+}
+
 - (void)becomeKeyWindow {
-    [[YYTextSharedApplication().delegate window] makeKeyWindow];
+    // 特效窗口不接管输入焦点，也不依赖应用代理持有窗口。
+}
+
+- (NSArray<UIWindow *> *)_hostWindows {
+    if (@available(iOS 13.0, *)) {
+        if (self.windowScene) return self.windowScene.windows;
+        if (YYTextSharedApplication().connectedScenes.count || [NSBundle.mainBundle objectForInfoDictionaryKey:@"UIApplicationSceneManifest"]) return @[];
+    }
+    return YYTextSharedApplication().windows;
 }
 
 - (UIViewController *)rootViewController {
-    for (UIWindow *window in [YYTextSharedApplication() windows]) {
+    for (UIWindow *window in [self _hostWindows]) {
         if (self == window) continue;
         if (window.hidden) continue;
         UIViewController *topViewController = window.rootViewController;
@@ -72,11 +138,12 @@
     UIApplication *app = YYTextSharedApplication();
     if (!app) return;
     
-    UIWindow *top = app.windows.lastObject;
-    UIWindow *key = app.keyWindow;
-    if (key && key.windowLevel > top.windowLevel) top = key;
-    if (top == self) return;
-    self.windowLevel = top.windowLevel + 1;
+    UIWindowLevel level = UIWindowLevelStatusBar;
+    for (UIWindow *window in [self _hostWindows]) {
+        if (window == self || window.hidden || [window isKindOfClass:self.class]) continue;
+        level = MAX(level, window.windowLevel);
+    }
+    self.windowLevel = level + 1;
 }
 
 - (YYTextDirection)_keyboardDirection {
@@ -268,15 +335,13 @@
     CGContextRotateCTM(context, -rotation);
     CGContextTranslateCTM(context, tp.x - captureCenter.x, tp.y - captureCenter.y);
     
-    NSMutableArray *windows = app.windows.mutableCopy;
-    UIWindow *keyWindow = app.keyWindow;
-    if (![windows containsObject:keyWindow]) [windows addObject:keyWindow];
+    NSMutableArray *windows = [self _hostWindows].mutableCopy;
     [windows sortUsingComparator:^NSComparisonResult(UIWindow *w1, UIWindow *w2) {
         if (w1.windowLevel < w2.windowLevel) return NSOrderedAscending;
         else if (w1.windowLevel > w2.windowLevel) return NSOrderedDescending;
         return NSOrderedSame;
     }];
-    UIScreen *mainScreen = [UIScreen mainScreen];
+    UIScreen *mainScreen = hostWindow.screen;
     for (UIWindow *window in windows) {
         if (window.hidden || window.alpha <= 0.01) continue;
         if (window.screen != mainScreen) continue;
@@ -300,6 +365,10 @@
 
 - (void)showMagnifier:(YYTextMagnifier *)mag {
     if (!mag) return;
+    if (!mag.hostView.window) return;
+    if (@available(iOS 13.0, *)) {
+        if (mag.hostView.window.windowScene != self.windowScene) return;
+    }
     if (mag.superview != self) [self addSubview:mag];
     [self _updateWindowLevel];
     CGFloat rotation = [self _updateMagnifier:mag];
@@ -413,6 +482,10 @@
 
 - (void)showSelectionDot:(YYTextSelectionView *)selection {
     if (!selection) return;
+    if (!selection.hostView.window) return;
+    if (@available(iOS 13.0, *)) {
+        if (selection.hostView.window.windowScene != self.windowScene) return;
+    }
     [self _updateWindowLevel];
     [self insertSubview:selection.startGrabber.dot.mirror atIndex:0];
     [self insertSubview:selection.endGrabber.dot.mirror atIndex:0];

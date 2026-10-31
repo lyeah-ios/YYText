@@ -90,7 +90,6 @@ static int _YYTextKeyboardViewFrameObserverKey;
     
     CGRect _fromFrame;
     BOOL _fromVisible;
-    UIInterfaceOrientation _fromOrientation;
     
     CGRect _notificationFromFrame;
     CGRect _notificationToFrame;
@@ -102,6 +101,8 @@ static int _YYTextKeyboardViewFrameObserverKey;
     BOOL _hasObservedChange;
     
     BOOL _lastIsNotification;
+    BOOL _hasKeyboardFrame;
+    __weak UIWindow *_notificationWindow;
 }
 
 - (instancetype)init {
@@ -120,6 +121,9 @@ static int _YYTextKeyboardViewFrameObserverKey;
                                              selector:@selector(_keyboardFrameDidChangeNotification:)
                                                  name:UIKeyboardDidChangeFrameNotification
                                                object:nil];
+    if (@available(iOS 13.0, *)) {
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_sceneDisconnected:) name:UISceneDidDisconnectNotification object:nil];
+    }
     return self;
 }
 
@@ -168,20 +172,63 @@ static int _YYTextKeyboardViewFrameObserverKey;
     [_observers removeObject:observer];
 }
 
+- (UIWindow *)_hostWindow {
+    for (id observer in _observers) {
+        if ([observer isKindOfClass:UIView.class] && [observer isFirstResponder]) {
+            UIWindow *window = [(UIView *)observer window];
+            if (window) return window;
+        }
+    }
+    UIApplication *app = YYTextSharedApplication();
+    if (@available(iOS 13.0, *)) {
+        for (NSNumber *state in @[@(UISceneActivationStateForegroundActive), @(UISceneActivationStateForegroundInactive)]) {
+            for (UIScene *scene in app.connectedScenes) {
+                if (![scene isKindOfClass:UIWindowScene.class] || scene.activationState != state.integerValue) continue;
+                for (UIWindow *window in ((UIWindowScene *)scene).windows) {
+                    if (window.isKeyWindow) return window;
+                }
+            }
+        }
+        if (app.connectedScenes.count || [NSBundle.mainBundle objectForInfoDictionaryKey:@"UIApplicationSceneManifest"]) return nil;
+    }
+    return app.keyWindow ?: app.windows.firstObject;
+}
+
+- (NSArray<UIWindow *> *)_candidateWindows {
+    if (@available(iOS 13.0, *)) {
+        UIWindowScene *scene = [self _hostWindow].windowScene;
+        if (scene) return scene.windows;
+        if (YYTextSharedApplication().connectedScenes.count || [NSBundle.mainBundle objectForInfoDictionaryKey:@"UIApplicationSceneManifest"]) return @[];
+    }
+    return YYTextSharedApplication().windows;
+}
+
+- (void)_sceneDisconnected:(NSNotification *)notification API_AVAILABLE(ios(13.0)) {
+    if (_notificationWindow.windowScene && _notificationWindow.windowScene != notification.object) return;
+    _notificationWindow = nil;
+    _hasKeyboardFrame = NO;
+    _hasNotification = NO;
+    _hasObservedChange = NO;
+    _fromVisible = NO;
+    _fromFrame = CGRectZero;
+    _notificationToFrame = CGRectNull;
+    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(_notifyAllObservers) object:nil];
+}
+
 - (UIWindow *)keyboardWindow {
     UIApplication *app = YYTextSharedApplication();
     if (!app) return nil;
     
     UIWindow *window = nil;
-    for (window in app.windows) {
+    for (window in [self _candidateWindows]) {
         if ([self _getKeyboardViewFromWindow:window]) return window;
     }
-    window = app.keyWindow;
+    window = [self _hostWindow];
     if ([self _getKeyboardViewFromWindow:window]) return window;
     
     UIWindow *kbWindow = nil;
     //参考 https://github.com/Tencent/QMUI_iOS/blob/4.6.0/QMUIKit/QMUIComponents/QMUIKeyboardManager.m
-    for (window in app.windows) {
+    for (window in [self _candidateWindows]) {
         NSString *windowName = NSStringFromClass(window.class);
         if (windowName.length == 22 &&
             [windowName hasPrefix:@"UI"] &&
@@ -208,35 +255,32 @@ static int _YYTextKeyboardViewFrameObserverKey;
     
     UIWindow *window = nil;
     UIView *view = nil;
-    for (window in app.windows) {
+    for (window in [self _candidateWindows]) {
         view = [self _getKeyboardViewFromWindow:window];
         if (view) return view;
     }
-    window = app.keyWindow;
+    window = [self _hostWindow];
     view = [self _getKeyboardViewFromWindow:window];
     if (view) return view;
     return nil;
 }
 
 - (BOOL)isKeyboardVisible {
-    UIWindow *window = self.keyboardWindow;
-    if (!window) return NO;
-    UIView *view = self.keyboardView;
-    if (!view) return NO;
-    CGRect rect = CGRectIntersection(window.bounds, view.frame);
-    if (CGRectIsNull(rect)) return NO;
-    if (CGRectIsInfinite(rect)) return NO;
-    return rect.size.width > 0 && rect.size.height > 0;
+    UIWindow *window = [self _hostWindow];
+    CGRect frame = self.keyboardFrame;
+    if (!window || CGRectIsNull(frame) || CGRectIsInfinite(frame)) return NO;
+    CGRect rect = [self convertRect:frame toView:window];
+    return !CGRectIsEmpty(CGRectIntersection(window.bounds, rect));
 }
 
 - (CGRect)keyboardFrame {
     UIView *keyboard = [self keyboardView];
-    if (!keyboard) return CGRectNull;
+    if (!keyboard) return _hasKeyboardFrame ? _notificationToFrame : CGRectNull;
     
     CGRect frame = CGRectNull;
     UIWindow *window = keyboard.window;
     if (window) {
-        frame = [window convertRect:keyboard.frame toWindow:nil];
+        frame = [keyboard convertRect:keyboard.bounds toCoordinateSpace:window.screen.coordinateSpace];
     } else {
         frame = keyboard.frame;
     }
@@ -327,6 +371,7 @@ static int _YYTextKeyboardViewFrameObserverKey;
     
     NSValue *beforeValue = info[UIKeyboardFrameBeginUserInfoKey];
     NSValue *afterValue = info[UIKeyboardFrameEndUserInfoKey];
+    if (!afterValue) return;
     NSNumber *curveNumber = info[UIKeyboardAnimationCurveUserInfoKey];
     NSNumber *durationNumber = info[UIKeyboardAnimationDurationUserInfoKey];
     
@@ -335,8 +380,8 @@ static int _YYTextKeyboardViewFrameObserverKey;
     UIViewAnimationCurve curve = curveNumber.integerValue;
     NSTimeInterval duration = durationNumber.doubleValue;
     
-    // ignore zero end frame
-    if (after.size.width <= 0 && after.size.height <= 0) return;
+    _notificationWindow = [self _hostWindow];
+    _hasKeyboardFrame = YES;
     
     _notificationFromFrame = before;
     _notificationToFrame = after;
@@ -361,10 +406,11 @@ static int _YYTextKeyboardViewFrameObserverKey;
     [self _initFrameObserver];
     
     NSValue *afterValue = info[UIKeyboardFrameEndUserInfoKey];
+    if (!afterValue) return;
     CGRect after = afterValue.CGRectValue;
     
-    // ignore zero end frame
-    if (after.size.width <= 0 && after.size.height <= 0) return;
+    _notificationWindow = [self _hostWindow];
+    _hasKeyboardFrame = YES;
     
     _notificationToFrame = after;
     _notificationCurve = UIViewAnimationCurveEaseInOut;
@@ -381,7 +427,7 @@ static int _YYTextKeyboardViewFrameObserverKey;
     
     UIWindow *window = keyboard.window;
     if (window) {
-        _observedToFrame = [window convertRect:keyboard.frame toWindow:nil];
+        _observedToFrame = [keyboard convertRect:keyboard.bounds toCoordinateSpace:window.screen.coordinateSpace];
     } else {
         _observedToFrame = keyboard.frame;
     }
@@ -396,14 +442,7 @@ static int _YYTextKeyboardViewFrameObserverKey;
     UIApplication *app = YYTextSharedApplication();
     if (!app) return;
     
-    UIView *keyboard = self.keyboardView;
-    UIWindow *window = keyboard.window;
-    if (!window) {
-        window = app.keyWindow;
-    }
-    if (!window) {
-        window = app.windows.firstObject;
-    }
+    UIWindow *window = [self _hostWindow];
     
     YYTextKeyboardTransition trans = {0};
     
@@ -428,7 +467,7 @@ static int _YYTextKeyboardViewFrameObserverKey;
     }
     
     if (window && trans.toFrame.size.width > 0 && trans.toFrame.size.height > 0) {
-        CGRect rect = CGRectIntersection(window.bounds, trans.toFrame);
+        CGRect rect = CGRectIntersection(window.bounds, [self convertRect:trans.toFrame toView:window]);
         if (!CGRectIsNull(rect) && !CGRectIsEmpty(rect)) {
             trans.toVisible = YES;
         }
@@ -446,7 +485,6 @@ static int _YYTextKeyboardViewFrameObserverKey;
     _hasObservedChange = NO;
     _fromFrame = trans.toFrame;
     _fromVisible = trans.toVisible;
-    _fromOrientation = app.statusBarOrientation;
 }
 
 - (CGRect)convertRect:(CGRect)rect toView:(UIView *)view {
@@ -456,29 +494,14 @@ static int _YYTextKeyboardViewFrameObserverKey;
     if (CGRectIsNull(rect)) return rect;
     if (CGRectIsInfinite(rect)) return rect;
     
-    UIWindow *mainWindow = app.keyWindow;
-    if (!mainWindow) mainWindow = app.windows.firstObject;
-    if (!mainWindow) { // no window ?!
-        if (view) {
-            [view convertRect:rect fromView:nil];
-        } else {
-            return rect;
-        }
+    if (!view) return rect;
+    UIWindow *window = [view isKindOfClass:UIWindow.class] ? (UIWindow *)view : view.window;
+    if (!window) return CGRectNull;
+    if (@available(iOS 13.0, *)) {
+        UIWindowScene *sourceScene = _notificationWindow.windowScene;
+        if (sourceScene && window.windowScene != sourceScene) return CGRectNull;
     }
-    
-    rect = [mainWindow convertRect:rect fromWindow:nil];
-    if (!view) return [mainWindow convertRect:rect toWindow:nil];
-    if (view == mainWindow) return rect;
-    
-    UIWindow *toWindow = [view isKindOfClass:[UIWindow class]] ? (id)view : view.window;
-    if (!mainWindow || !toWindow) return [mainWindow convertRect:rect toView:view];
-    if (mainWindow == toWindow) return [mainWindow convertRect:rect toView:view];
-    
-    // in different window
-    rect = [mainWindow convertRect:rect toView:mainWindow];
-    rect = [toWindow convertRect:rect fromWindow:mainWindow];
-    rect = [view convertRect:rect fromView:toWindow];
-    return rect;
+    return [view convertRect:rect fromCoordinateSpace:window.screen.coordinateSpace];
 }
 
 @end
