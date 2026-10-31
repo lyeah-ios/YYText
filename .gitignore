@@ -1,6 +1,10 @@
 # OS X
 .DS_Store
 
+# Local agent configuration
+/.uni-agent/
+/.hbuilderx/
+
 # Xcode
 #
 # gitignore contributors: remember to update Global/Xcode.gitignore, Objective-C.gitignore & Swift.gitignore
