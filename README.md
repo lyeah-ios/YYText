@@ -4,7 +4,7 @@ YYText
 [![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)&nbsp;
 [![CocoaPods](http://img.shields.io/cocoapods/v/YYText.svg?style=flat)](http://cocoapods.org/pods/YYText)&nbsp;
 [![CocoaPods](http://img.shields.io/cocoapods/p/YYText.svg?style=flat)](http://cocoadocs.org/docsets/YYText)&nbsp;
-[![Support](https://img.shields.io/badge/support-iOS%206%2B%20-blue.svg?style=flat)](https://www.apple.com/nl/ios/)&nbsp;
+[![Support](https://img.shields.io/badge/support-iOS%2013%2B%20-blue.svg?style=flat)](https://www.apple.com/nl/ios/)&nbsp;
 [![Build Status](https://travis-ci.org/ibireme/YYText.svg?branch=master)](https://travis-ci.org/ibireme/YYText)
 
 Powerful text framework for iOS to display and edit rich text.<br/>
@@ -539,7 +539,8 @@ You can also install documentation locally using [appledoc](https://github.com/t
 
 Requirements
 ==============
-This library requires `iOS 6.0+` and `Xcode 8.0+`.
+This library requires `iOS 13.0+` and Xcode with an iOS 13 or later SDK.
+Build verification uses Xcode 26.6 with the iOS 26.5 SDK; the Xcode 8 Travis configuration is historical.
 
 
 License
@@ -1085,7 +1086,8 @@ debugOptions.CGGlyphBorderColor = [UIColor colorWithRed:1.000 green:0.524 blue:0
 
 系统要求
 ==============
-该项目最低支持 `iOS 6.0` 和 `Xcode 8.0`。
+该项目最低支持 `iOS 13.0`，需要包含 iOS 13 或更新 SDK 的 Xcode。
+构建验证使用 Xcode 26.6 和 iOS 26.5 SDK；仓库中的 Xcode 8 Travis 配置仅供历史参考。
 
 
 已知问题
@@ -1098,5 +1100,4 @@ debugOptions.CGGlyphBorderColor = [UIColor colorWithRed:1.000 green:0.524 blue:0
 许可证
 ==============
 YYText 使用 MIT 许可证，详情见 LICENSE 文件。
-
 

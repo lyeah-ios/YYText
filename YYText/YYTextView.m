@@ -2417,27 +2417,25 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
 }
 
 - (void)tintColorDidChange {
-    if ([self respondsToSelector:@selector(tintColor)]) {
-        UIColor *color = self.tintColor;
-        NSMutableDictionary *attrs = _highlightTextAttributes.mutableCopy;
-        NSMutableDictionary *linkAttrs = _linkTextAttributes.mutableCopy;
-        if (!linkAttrs) linkAttrs = @{}.mutableCopy;
-        if (!color) {
-            [attrs removeObjectForKey:NSForegroundColorAttributeName];
-            [attrs removeObjectForKey:(id)kCTForegroundColorAttributeName];
-            [linkAttrs setObject:[self _defaultTintColor] forKey:NSForegroundColorAttributeName];
-            [linkAttrs setObject:(id)[self _defaultTintColor].CGColor forKey:(id)kCTForegroundColorAttributeName];
-        } else {
-            [attrs setObject:color forKey:NSForegroundColorAttributeName];
-            [attrs setObject:(id)color.CGColor forKey:(id)kCTForegroundColorAttributeName];
-            [linkAttrs setObject:color forKey:NSForegroundColorAttributeName];
-            [linkAttrs setObject:(id)color.CGColor forKey:(id)kCTForegroundColorAttributeName];
-        }
-        self.highlightTextAttributes = attrs;
-        _selectionView.color = color ? color : [self _defaultTintColor];
-        _linkTextAttributes = linkAttrs;
-        [self _commitUpdate];
+    UIColor *color = self.tintColor;
+    NSMutableDictionary *attrs = _highlightTextAttributes.mutableCopy;
+    NSMutableDictionary *linkAttrs = _linkTextAttributes.mutableCopy;
+    if (!linkAttrs) linkAttrs = @{}.mutableCopy;
+    if (!color) {
+        [attrs removeObjectForKey:NSForegroundColorAttributeName];
+        [attrs removeObjectForKey:(id)kCTForegroundColorAttributeName];
+        [linkAttrs setObject:[self _defaultTintColor] forKey:NSForegroundColorAttributeName];
+        [linkAttrs setObject:(id)[self _defaultTintColor].CGColor forKey:(id)kCTForegroundColorAttributeName];
+    } else {
+        [attrs setObject:color forKey:NSForegroundColorAttributeName];
+        [attrs setObject:(id)color.CGColor forKey:(id)kCTForegroundColorAttributeName];
+        [linkAttrs setObject:color forKey:NSForegroundColorAttributeName];
+        [linkAttrs setObject:(id)color.CGColor forKey:(id)kCTForegroundColorAttributeName];
     }
+    self.highlightTextAttributes = attrs;
+    _selectionView.color = color ? color : [self _defaultTintColor];
+    _linkTextAttributes = linkAttrs;
+    [self _commitUpdate];
 }
 
 - (CGSize)sizeThatFits:(CGSize)size {
@@ -3664,17 +3662,16 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
 @implementation YYTextView(IBInspectableProperties)
 
 - (BOOL)fontIsBold_:(UIFont *)font {
-    if (![font respondsToSelector:@selector(fontDescriptor)]) return NO;
     return (font.fontDescriptor.symbolicTraits & UIFontDescriptorTraitBold) > 0;
 }
 
 - (UIFont *)boldFont_:(UIFont *)font {
-    if (![font respondsToSelector:@selector(fontDescriptor)]) return font;
+    if (!font) return nil;
     return [UIFont fontWithDescriptor:[font.fontDescriptor fontDescriptorWithSymbolicTraits:UIFontDescriptorTraitBold] size:font.pointSize];
 }
 
 - (UIFont *)normalFont_:(UIFont *)font {
-    if (![font respondsToSelector:@selector(fontDescriptor)]) return font;
+    if (!font) return nil;
     return [UIFont fontWithDescriptor:[font.fontDescriptor fontDescriptorWithSymbolicTraits:0] size:font.pointSize];
 }
 

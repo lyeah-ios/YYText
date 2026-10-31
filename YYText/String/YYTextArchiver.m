@@ -14,43 +14,6 @@
 #import "YYTextRubyAnnotation.h"
 
 /**
- When call CTRunDelegateGetTypeID() on some devices (runs iOS6), I got the error:
- "dyld: lazy symbol binding failed: Symbol not found: _CTRunDelegateGetTypeID"
- 
- Here's a workaround for this issue.
- */
-static CFTypeID CTRunDelegateTypeID() {
-    static CFTypeID typeID;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        /*
-        if ((long)CTRunDelegateGetTypeID + 1 > 1) { //avoid compiler optimization
-            typeID = CTRunDelegateGetTypeID();
-        }
-         */
-        YYTextRunDelegate *delegate = [YYTextRunDelegate new];
-        CTRunDelegateRef ref = delegate.CTRunDelegate;
-        typeID = CFGetTypeID(ref);
-        CFRelease(ref);
-    });
-    return typeID;
-}
-
-static CFTypeID CTRubyAnnotationTypeID() {
-    static CFTypeID typeID;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        if ((long)CTRubyAnnotationGetTypeID + 1 > 1) { //avoid compiler optimization
-            /// ⚠️⚠️⚠️ LYH Support: fixed typo => CTRunDelegateGetTypeID to CTRubyAnnotationGetTypeID
-            typeID = CTRubyAnnotationGetTypeID();
-        } else {
-            typeID = kCFNotFound;
-        }
-    });
-    return typeID;
-}
-
-/**
  A wrapper for CGColorRef. Used for Archive/Unarchive/Copy.
  */
 @interface _YYCGColor : NSObject <NSCopying, NSCoding>
@@ -179,11 +142,11 @@ static CFTypeID CTRubyAnnotationTypeID() {
 
 - (id)archiver:(NSKeyedArchiver *)archiver willEncodeObject:(id)object {
     CFTypeID typeID = CFGetTypeID((CFTypeRef)object);
-    if (typeID == CTRunDelegateTypeID()) {
+    if (typeID == CTRunDelegateGetTypeID()) {
         CTRunDelegateRef runDelegate = (__bridge CFTypeRef)(object);
         id ref = CTRunDelegateGetRefCon(runDelegate);
         if (ref) return ref;
-    } else if (typeID == CTRubyAnnotationTypeID()) {
+    } else if (typeID == CTRubyAnnotationGetTypeID()) {
         CTRubyAnnotationRef ctRuby = (__bridge CFTypeRef)(object);
         YYTextRubyAnnotation *ruby = [YYTextRubyAnnotation rubyWithCTRubyRef:ctRuby];
         if (ruby) return ruby;

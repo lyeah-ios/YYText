@@ -1228,17 +1228,16 @@ static dispatch_queue_t YYLabelGetReleaseQueue() {
 @implementation YYLabel (IBInspectableProperties)
 
 - (BOOL)fontIsBold_:(UIFont *)font {
-    if (![font respondsToSelector:@selector(fontDescriptor)]) return NO;
     return (font.fontDescriptor.symbolicTraits & UIFontDescriptorTraitBold) > 0;
 }
 
 - (UIFont *)boldFont_:(UIFont *)font {
-    if (![font respondsToSelector:@selector(fontDescriptor)]) return font;
+    if (!font) return nil;
     return [UIFont fontWithDescriptor:[font.fontDescriptor fontDescriptorWithSymbolicTraits:UIFontDescriptorTraitBold] size:font.pointSize];
 }
 
 - (UIFont *)normalFont_:(UIFont *)font {
-    if (![font respondsToSelector:@selector(fontDescriptor)]) return font;
+    if (!font) return nil;
     return [UIFont fontWithDescriptor:[font.fontDescriptor fontDescriptorWithSymbolicTraits:0] size:font.pointSize];
 }
 

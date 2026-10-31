@@ -88,29 +88,23 @@
         style.paragraphSpacingBefore = paragraphSpacingBefore;
     }
     
-    if ([style respondsToSelector:@selector(tabStops)]) {
-        CFArrayRef tabStops;
-        if (CTParagraphStyleGetValueForSpecifier(CTStyle, kCTParagraphStyleSpecifierTabStops, sizeof(CFArrayRef), &tabStops)) {
-            if ([style respondsToSelector:@selector(setTabStops:)]) {
-                NSMutableArray *tabs = [NSMutableArray new];
-                [((__bridge NSArray *)(tabStops))enumerateObjectsUsingBlock : ^(id obj, NSUInteger idx, BOOL *stop) {
-                    CTTextTabRef ctTab = (__bridge CFTypeRef)obj;
-                    
-                    NSTextTab *tab = [[NSTextTab alloc] initWithTextAlignment:NSTextAlignmentFromCTTextAlignment(CTTextTabGetAlignment(ctTab)) location:CTTextTabGetLocation(ctTab) options:(__bridge id)CTTextTabGetOptions(ctTab)];
-                    [tabs addObject:tab];
-                }];
-                if (tabs.count) {
-                    style.tabStops = tabs;
-                }
-            }
+    CFArrayRef tabStops;
+    if (CTParagraphStyleGetValueForSpecifier(CTStyle, kCTParagraphStyleSpecifierTabStops, sizeof(CFArrayRef), &tabStops)) {
+        NSMutableArray *tabs = [NSMutableArray new];
+        [((__bridge NSArray *)(tabStops))enumerateObjectsUsingBlock : ^(id obj, NSUInteger idx, BOOL *stop) {
+            CTTextTabRef ctTab = (__bridge CFTypeRef)obj;
+
+            NSTextTab *tab = [[NSTextTab alloc] initWithTextAlignment:NSTextAlignmentFromCTTextAlignment(CTTextTabGetAlignment(ctTab)) location:CTTextTabGetLocation(ctTab) options:(__bridge id)CTTextTabGetOptions(ctTab)];
+            [tabs addObject:tab];
+        }];
+        if (tabs.count) {
+            style.tabStops = tabs;
         }
-        
-        CGFloat defaultTabInterval;
-        if (CTParagraphStyleGetValueForSpecifier(CTStyle, kCTParagraphStyleSpecifierDefaultTabInterval, sizeof(CGFloat), &defaultTabInterval)) {
-            if ([style respondsToSelector:@selector(setDefaultTabInterval:)]) {
-                style.defaultTabInterval = defaultTabInterval;
-            }
-        }
+    }
+
+    CGFloat defaultTabInterval;
+    if (CTParagraphStyleGetValueForSpecifier(CTStyle, kCTParagraphStyleSpecifierDefaultTabInterval, sizeof(CGFloat), &defaultTabInterval)) {
+        style.defaultTabInterval = defaultTabInterval;
     }
     
     return style;
@@ -195,33 +189,26 @@
     set[count].value = &paragraphSpacingBefore;
     count++;
     
-    if([self respondsToSelector:@selector(tabStops)]) {
-        NSMutableArray *tabs = [NSMutableArray array];
-        if ([self respondsToSelector:@selector(tabStops)]) {
-            NSInteger numTabs = self.tabStops.count;
-            if (numTabs) {
-                [self.tabStops enumerateObjectsUsingBlock: ^(NSTextTab *tab, NSUInteger idx, BOOL *stop) {
-                    CTTextTabRef ctTab = CTTextTabCreate(NSTextAlignmentToCTTextAlignment(tab.alignment), tab.location, (__bridge CFTypeRef)tab.options);
-                    [tabs addObject:(__bridge id)ctTab];
-                    CFRelease(ctTab);
-                }];
-                
-                CFArrayRef tabStops = (__bridge CFArrayRef)(tabs);
-                set[count].spec = kCTParagraphStyleSpecifierTabStops;
-                set[count].valueSize = sizeof(CFArrayRef);
-                set[count].value = &tabStops;
-                count++;
-            }
-        }
-        
-        if ([self respondsToSelector:@selector(defaultTabInterval)]) {
-            CGFloat defaultTabInterval = self.defaultTabInterval;
-            set[count].spec = kCTParagraphStyleSpecifierDefaultTabInterval;
-            set[count].valueSize = sizeof(CGFloat);
-            set[count].value = &defaultTabInterval;
-            count++;
-        }
+    // CoreText reads these pointers during creation; keep their storage and array alive.
+    NSMutableArray *tabs __attribute__((objc_precise_lifetime)) = [NSMutableArray array];
+    [self.tabStops enumerateObjectsUsingBlock: ^(NSTextTab *tab, NSUInteger idx, BOOL *stop) {
+        CTTextTabRef ctTab = CTTextTabCreate(NSTextAlignmentToCTTextAlignment(tab.alignment), tab.location, (__bridge CFTypeRef)tab.options);
+        [tabs addObject:(__bridge id)ctTab];
+        CFRelease(ctTab);
+    }];
+    CFArrayRef tabStops = (__bridge CFArrayRef)tabs;
+    if (tabs.count) {
+        set[count].spec = kCTParagraphStyleSpecifierTabStops;
+        set[count].valueSize = sizeof(CFArrayRef);
+        set[count].value = &tabStops;
+        count++;
     }
+
+    CGFloat defaultTabInterval = self.defaultTabInterval;
+    set[count].spec = kCTParagraphStyleSpecifierDefaultTabInterval;
+    set[count].valueSize = sizeof(CGFloat);
+    set[count].value = &defaultTabInterval;
+    count++;
     
     CTParagraphStyleRef style = CTParagraphStyleCreate(set, count);
     return style;

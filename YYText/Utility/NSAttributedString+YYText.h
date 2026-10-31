@@ -255,6 +255,7 @@ NS_ASSUME_NONNULL_BEGIN
  The character's offset from the baseline, in points. (read-only)
  
  @discussion Default is 0.
+ @discussion Reads the UIKit baseline attribute, falling back to the CoreText attribute.
  @discussion Get this property returns the first character's attribute.
  @since UIKit:7.0
  */
@@ -931,6 +932,7 @@ NS_ASSUME_NONNULL_BEGIN
  The character's offset from the baseline, in points. 
  
  @discussion Default is 0.
+ @discussion Setting this property updates both UIKit and CoreText baseline attributes.
  @discussion Set this property applies to the entire text string.
              Get this property returns the first character's attribute.
  @since UIKit:7.0

@@ -35,8 +35,6 @@
 }
 
 - (CTRubyAnnotationRef)CTRubyAnnotation CF_RETURNS_RETAINED {
-    if (((long)CTRubyAnnotationCreate + 1) == 1) return NULL; // system not support
-    
     CFStringRef text[kCTRubyPositionCount];
     text[kCTRubyPositionBefore] = (__bridge CFStringRef)(_textBefore);
     text[kCTRubyPositionAfter] = (__bridge CFStringRef)(_textAfter);
@@ -72,7 +70,7 @@
     self = [self init];
     _alignment = ((NSNumber *)[aDecoder decodeObjectForKey:@"alignment"]).intValue;
     _overhang = ((NSNumber *)[aDecoder decodeObjectForKey:@"overhang"]).intValue;
-    _sizeFactor = ((NSNumber *)[aDecoder decodeObjectForKey:@"sizeFactor"]).intValue;
+    _sizeFactor = ((NSNumber *)[aDecoder decodeObjectForKey:@"sizeFactor"]).doubleValue;
     _textBefore = [aDecoder decodeObjectForKey:@"textBefore"];
     _textAfter = [aDecoder decodeObjectForKey:@"textAfter"];
     _textInterCharacter = [aDecoder decodeObjectForKey:@"textInterCharacter"];

@@ -221,7 +221,8 @@
 }
 
 - (NSNumber *)yy_baselineOffsetAtIndex:(NSUInteger)index {
-    return [self yy_attribute:NSBaselineOffsetAttributeName atIndex:index];
+    return [self yy_attribute:NSBaselineOffsetAttributeName atIndex:index] ?:
+           [self yy_attribute:(__bridge NSString *)kCTBaselineOffsetAttributeName atIndex:index];
 }
 
 - (BOOL)yy_verticalGlyphForm {
@@ -965,11 +966,8 @@ return style. _attr_;
 }
 
 - (void)yy_setBaselineOffset:(NSNumber *)baselineOffset range:(NSRange)range {
-    if (@available(iOS 11.0, *)) {
-        [self yy_setAttribute:(__bridge NSString *)kCTBaselineOffsetAttributeName value:baselineOffset range:range];
-    } else {
-        [self yy_setAttribute:NSBaselineOffsetAttributeName value:baselineOffset range:range];
-    }
+    [self yy_setAttribute:NSBaselineOffsetAttributeName value:baselineOffset range:range];
+    [self yy_setAttribute:(__bridge NSString *)kCTBaselineOffsetAttributeName value:baselineOffset range:range];
 }
 
 - (void)yy_setVerticalGlyphForm:(BOOL)verticalGlyphForm range:(NSRange)range {

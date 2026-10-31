@@ -41,9 +41,9 @@
 
 - 编译需要 macOS、完整 Xcode 和 iOS SDK；只有 Command Line Tools 不够。
 - Objective-C 使用 ARC，工程的 C 语言标准为 `gnu11`。
-- podspec 最低 iOS 9.0，Demo 工程为 9.0，Framework 工程为 8.0。
-- README 的 iOS 6+ 与上述设置不一致，不应直接据此修改部署目标。
-- 历史 CI 使用 Xcode 8；不代表已经验证最新 Xcode，也不要求本地只能使用旧版。
+- podspec、Demo 和 Framework 的最低部署目标统一为 iOS 13.0。
+- iOS 13 仍支持传统应用生命周期，不能将最低版本提升等同于强制使用 UIScene。
+- 本机验证工具链为 Xcode 26.6 / iOS 26.5；iOS 13 实际运行需另行验证，Xcode 8 CI 仅供历史参考。
 - 不为消除 SDK 警告而擅自提高最低版本、修改签名或批量升级工程。
 - 仓库未提供 Podfile；直接构建已有工程不需要先运行 `pod install`。
 - CocoaPods 发布 `YYText/**/*.{h,m}`，并将其下所有 `.h` 声明为公开头文件。

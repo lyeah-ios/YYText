@@ -397,17 +397,6 @@ dispatch_semaphore_signal(_lock);
     container->_readonly = YES;
     maximumNumberOfRows = container.maximumNumberOfRows;
     
-    // It may use larger constraint size when create CTFrame with
-    // CTFramesetterCreateFrame in iOS 10.
-    static BOOL needFixLayoutSizeBug = NO;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        double systemVersionDouble = [UIDevice currentDevice].systemVersion.doubleValue;
-        if (systemVersionDouble >= 10) {
-            needFixLayoutSizeBug = YES;
-        }
-    });
-    
     layout = [[YYTextLayout alloc] _init];
     layout.text = text;
     layout.container = container;
@@ -418,15 +407,14 @@ dispatch_semaphore_signal(_lock);
     if (container.path == nil && container.exclusionPaths.count == 0) {
         if (container.size.width <= 0 || container.size.height <= 0) goto fail;
         CGRect rect = (CGRect) {CGPointZero, container.size };
-        if (needFixLayoutSizeBug) {
-            constraintSizeIsExtended = YES;
-            constraintRectBeforeExtended = UIEdgeInsetsInsetRect(rect, container.insets);
-            constraintRectBeforeExtended = CGRectStandardize(constraintRectBeforeExtended);
-            if (container.isVerticalForm) {
-                rect.size.width = YYTextContainerMaxSize.width;
-            } else {
-                rect.size.height = YYTextContainerMaxSize.height;
-            }
+        // Extend the CTFrame constraint, then clip lines to the original container.
+        constraintSizeIsExtended = YES;
+        constraintRectBeforeExtended = UIEdgeInsetsInsetRect(rect, container.insets);
+        constraintRectBeforeExtended = CGRectStandardize(constraintRectBeforeExtended);
+        if (container.isVerticalForm) {
+            rect.size.width = YYTextContainerMaxSize.width;
+        } else {
+            rect.size.height = YYTextContainerMaxSize.height;
         }
         rect = UIEdgeInsetsInsetRect(rect, container.insets);
         rect = CGRectStandardize(rect);
@@ -516,6 +504,10 @@ dispatch_semaphore_signal(_lock);
         CGPoint position;
         position.x = cgPathBox.origin.x + ctLineOrigin.x;
         position.y = cgPathBox.size.height + cgPathBox.origin.y - ctLineOrigin.y;
+        if (isVerticalForm && constraintSizeIsExtended) {
+            // Vertical lines start at the extended right edge; restore the container origin.
+            position.x -= cgPathBox.size.width - constraintRectBeforeExtended.size.width;
+        }
         
         YYTextLine *line = [YYTextLine lineWithCTLine:ctLine position:position vertical:isVerticalForm];
         CGRect rect = line.bounds;

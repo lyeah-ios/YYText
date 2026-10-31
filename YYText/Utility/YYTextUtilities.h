@@ -521,17 +521,17 @@ static inline UIEdgeInsets YYTextUIEdgeInsetPixelCeil(UIEdgeInsets insets) {
 
 
 static inline UIFont * _Nullable YYTextFontWithBold(UIFont *font) {
-    if (![font respondsToSelector:@selector(fontDescriptor)]) return font;
+    if (!font) return nil;
     return [UIFont fontWithDescriptor:[font.fontDescriptor fontDescriptorWithSymbolicTraits:UIFontDescriptorTraitBold] size:font.pointSize];
 }
 
 static inline UIFont * _Nullable YYTextFontWithItalic(UIFont *font) {
-    if (![font respondsToSelector:@selector(fontDescriptor)]) return font;
+    if (!font) return nil;
     return [UIFont fontWithDescriptor:[font.fontDescriptor fontDescriptorWithSymbolicTraits:UIFontDescriptorTraitItalic] size:font.pointSize];
 }
 
 static inline UIFont * _Nullable YYTextFontWithBoldItalic(UIFont *font) {
-    if (![font respondsToSelector:@selector(fontDescriptor)]) return font;
+    if (!font) return nil;
     return [UIFont fontWithDescriptor:[font.fontDescriptor fontDescriptorWithSymbolicTraits:UIFontDescriptorTraitBold | UIFontDescriptorTraitItalic] size:font.pointSize];
 }
 

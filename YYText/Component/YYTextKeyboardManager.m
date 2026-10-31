@@ -121,9 +121,7 @@ static int _YYTextKeyboardViewFrameObserverKey;
                                              selector:@selector(_keyboardFrameDidChangeNotification:)
                                                  name:UIKeyboardDidChangeFrameNotification
                                                object:nil];
-    if (@available(iOS 13.0, *)) {
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_sceneDisconnected:) name:UISceneDidDisconnectNotification object:nil];
-    }
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_sceneDisconnected:) name:UISceneDidDisconnectNotification object:nil];
     return self;
 }
 
@@ -180,26 +178,22 @@ static int _YYTextKeyboardViewFrameObserverKey;
         }
     }
     UIApplication *app = YYTextSharedApplication();
-    if (@available(iOS 13.0, *)) {
-        for (NSNumber *state in @[@(UISceneActivationStateForegroundActive), @(UISceneActivationStateForegroundInactive)]) {
-            for (UIScene *scene in app.connectedScenes) {
-                if (![scene isKindOfClass:UIWindowScene.class] || scene.activationState != state.integerValue) continue;
-                for (UIWindow *window in ((UIWindowScene *)scene).windows) {
-                    if (window.isKeyWindow) return window;
-                }
+    for (NSNumber *state in @[@(UISceneActivationStateForegroundActive), @(UISceneActivationStateForegroundInactive)]) {
+        for (UIScene *scene in app.connectedScenes) {
+            if (![scene isKindOfClass:UIWindowScene.class] || scene.activationState != state.integerValue) continue;
+            for (UIWindow *window in ((UIWindowScene *)scene).windows) {
+                if (window.isKeyWindow) return window;
             }
         }
-        if (app.connectedScenes.count || [NSBundle.mainBundle objectForInfoDictionaryKey:@"UIApplicationSceneManifest"]) return nil;
     }
+    if (app.connectedScenes.count || [NSBundle.mainBundle objectForInfoDictionaryKey:@"UIApplicationSceneManifest"]) return nil;
     return app.keyWindow ?: app.windows.firstObject;
 }
 
 - (NSArray<UIWindow *> *)_candidateWindows {
-    if (@available(iOS 13.0, *)) {
-        UIWindowScene *scene = [self _hostWindow].windowScene;
-        if (scene) return scene.windows;
-        if (YYTextSharedApplication().connectedScenes.count || [NSBundle.mainBundle objectForInfoDictionaryKey:@"UIApplicationSceneManifest"]) return @[];
-    }
+    UIWindowScene *scene = [self _hostWindow].windowScene;
+    if (scene) return scene.windows;
+    if (YYTextSharedApplication().connectedScenes.count || [NSBundle.mainBundle objectForInfoDictionaryKey:@"UIApplicationSceneManifest"]) return @[];
     return YYTextSharedApplication().windows;
 }
 
@@ -497,10 +491,8 @@ static int _YYTextKeyboardViewFrameObserverKey;
     if (!view) return rect;
     UIWindow *window = [view isKindOfClass:UIWindow.class] ? (UIWindow *)view : view.window;
     if (!window) return CGRectNull;
-    if (@available(iOS 13.0, *)) {
-        UIWindowScene *sourceScene = _notificationWindow.windowScene;
-        if (sourceScene && window.windowScene != sourceScene) return CGRectNull;
-    }
+    UIWindowScene *sourceScene = _notificationWindow.windowScene;
+    if (sourceScene && window.windowScene != sourceScene) return CGRectNull;
     return [view convertRect:rect fromCoordinateSpace:window.screen.coordinateSpace];
 }
 
