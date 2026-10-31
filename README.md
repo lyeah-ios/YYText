@@ -489,6 +489,8 @@ debugOptions.CGGlyphBorderColor = [UIColor colorWithRed:1.000 green:0.524 blue:0
 ### More examples
 See `Demo/YYTextDemo.xcodeproj` for more examples:
 
+Open the project in Xcode and run the `YYTextDemo` target on an iOS 13 or later device or simulator. The demo uses a single-window `SceneDelegate` with a programmatic navigation root and retains `LaunchScreen.storyboard` for launch.
+
 <img src="https://raw.github.com/ibireme/YYText/master/Demo/DemoSnapshot/text_path.gif" width="320">
 <img src="https://raw.github.com/ibireme/YYText/master/Demo/DemoSnapshot/text_markdown.gif" width="320">
 <br/> <br/>
@@ -1037,6 +1039,8 @@ debugOptions.CGGlyphBorderColor = [UIColor colorWithRed:1.000 green:0.524 blue:0
 ### 更多示例
 查看演示工程 `Demo/YYTextDemo.xcodeproj`:
 
+在 Xcode 中打开工程，选择 `YYTextDemo` target，在 iOS 13 或更新版本的设备或模拟器运行。演示使用单窗口 `SceneDelegate` 程序化创建导航根控制器，并保留 `LaunchScreen.storyboard` 启动画面。
+
 <img src="https://raw.github.com/ibireme/YYText/master/Demo/DemoSnapshot/text_path.gif" width="320">
 <img src="https://raw.github.com/ibireme/YYText/master/Demo/DemoSnapshot/text_markdown.gif" width="320">
 <br/> <br/>
@@ -1100,4 +1104,3 @@ debugOptions.CGGlyphBorderColor = [UIColor colorWithRed:1.000 green:0.524 blue:0
 许可证
 ==============
 YYText 使用 MIT 许可证，详情见 LICENSE 文件。
-

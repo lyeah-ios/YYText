@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		130013001300130013001303 /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 130013001300130013001302 /* SceneDelegate.m */; };
 		58450F09252340A90038B992 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 58450F08252340A90038B992 /* CoreServices.framework */; };
 		D91054861F3735D20007F224 /* Animated image support.txt in Resources */ = {isa = PBXBuildFile; fileRef = D910547B1F3735D20007F224 /* Animated image support.txt */; };
 		D91054871F3735D20007F224 /* YYAnimatedImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = D910547D1F3735D20007F224 /* YYAnimatedImageView.m */; };
@@ -75,13 +76,14 @@
 		D910553B1F37375F0007F224 /* ImageIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D910553A1F37375F0007F224 /* ImageIO.framework */; };
 		D910553F1F3737670007F224 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D910553E1F3737670007F224 /* SystemConfiguration.framework */; };
 		D91055411F37376C0007F224 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D91055401F37376C0007F224 /* libz.tbd */; };
-		D94EE9961F37304200F37AD6 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D94EE9941F37304200F37AD6 /* Main.storyboard */; };
 		D94EE9981F37304200F37AD6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D94EE9971F37304200F37AD6 /* Assets.xcassets */; };
 		D94EE99B1F37304200F37AD6 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D94EE9991F37304200F37AD6 /* LaunchScreen.storyboard */; };
 		D94EE99E1F37304200F37AD6 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = D94EE99D1F37304200F37AD6 /* main.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		130013001300130013001301 /* SceneDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SceneDelegate.h; sourceTree = "<group>"; };
+		130013001300130013001302 /* SceneDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SceneDelegate.m; sourceTree = "<group>"; };
 		58450F08252340A90038B992 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
 		D910547B1F3735D20007F224 /* Animated image support.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Animated image support.txt"; sourceTree = "<group>"; };
 		D910547C1F3735D20007F224 /* YYAnimatedImageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YYAnimatedImageView.h; sourceTree = "<group>"; };
@@ -208,7 +210,6 @@
 		D910553E1F3737670007F224 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		D91055401F37376C0007F224 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		D94EE98B1F37304200F37AD6 /* YYTextDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = YYTextDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		D94EE9951F37304200F37AD6 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		D94EE9971F37304200F37AD6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D94EE99A1F37304200F37AD6 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		D94EE99C1F37304200F37AD6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -361,9 +362,10 @@
 				D91054F51F3736700007F224 /* YYWeakProxy.m */,
 				D91054D91F3736060007F224 /* AppDelegate.h */,
 				D91054DA1F3736060007F224 /* AppDelegate.m */,
+				130013001300130013001301 /* SceneDelegate.h */,
+				130013001300130013001302 /* SceneDelegate.m */,
 				D91054DB1F3736060007F224 /* ViewController.h */,
 				D91054DC1F3736060007F224 /* ViewController.m */,
-				D94EE9941F37304200F37AD6 /* Main.storyboard */,
 				D94EE9971F37304200F37AD6 /* Assets.xcassets */,
 				D94EE9991F37304200F37AD6 /* LaunchScreen.storyboard */,
 				D94EE99C1F37304200F37AD6 /* Info.plist */,
@@ -514,7 +516,6 @@
 				D910552F1F37368D0007F224 /* pia@2x.png in Resources */,
 				D910552D1F37368D0007F224 /* dribbble256_imageio.png in Resources */,
 				D94EE9981F37304200F37AD6 /* Assets.xcassets in Resources */,
-				D94EE9961F37304200F37AD6 /* Main.storyboard in Resources */,
 				D91054861F3735D20007F224 /* Animated image support.txt in Resources */,
 				D910552C1F37368D0007F224 /* dribbble64_imageio.png in Resources */,
 				D910552E1F37368D0007F224 /* EmoticonQQ.bundle in Resources */,
@@ -528,6 +529,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				130013001300130013001303 /* SceneDelegate.m in Sources */,
 				D91054CE1F3735E50007F224 /* YYTextRunDelegate.m in Sources */,
 				D91054FE1F3736700007F224 /* YYFPSLabel.m in Sources */,
 				D91054C11F3735E50007F224 /* YYTextContainerView.m in Sources */,
@@ -590,14 +592,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
-		D94EE9941F37304200F37AD6 /* Main.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				D94EE9951F37304200F37AD6 /* Base */,
-			);
-			name = Main.storyboard;
-			sourceTree = "<group>";
-		};
 		D94EE9991F37304200F37AD6 /* LaunchScreen.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (

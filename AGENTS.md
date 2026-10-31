@@ -25,11 +25,11 @@
 - `Framework/YYText.xcodeproj`：框架工程，目标与共享 scheme 均为 `YYText`。
 - `Framework/Info.plist`：框架元数据；Framework 目录不是另一份源码。
 - `Demo/YYTextDemo.xcodeproj`：演示应用工程，应用目标为 `YYTextDemo`。
-- `Demo/YYTextDemo/`：AppDelegate、入口控制器和 `YYText*Example.{h,m}` 示例。
+- `Demo/YYTextDemo/`：AppDelegate、单窗口 SceneDelegate、入口控制器和 `YYText*Example.{h,m}` 示例。
 - 示例覆盖属性、附件、异步显示、编辑、表情、Markdown、复制粘贴、撤销等。
 - `Demo/YYTextDemo/YYImage/` 及 `*+YYAdd` 等：随示例内置的支持代码。
 - `Demo/YYTextDemo/Assets.xcassets/`：应用图片资源。
-- `Demo/YYTextDemo/Base.lproj/`：Storyboard；`EmoticonQQ.bundle/`：表情资源。
+- `Demo/YYTextDemo/Base.lproj/`：LaunchScreen.storyboard；`EmoticonQQ.bundle/`：表情资源。
 - `Demo/YYTextDemo/` 下另有 PNG 和 Info.plist 等应用资源。
 - `Demo/DemoSnapshot/`：README 展示用截图或动图，不是自动化快照测试。
 - `Attributes/`：属性效果图片、架构图及 PDF 文档，不是运行时框架资源。
@@ -77,6 +77,7 @@ xcodebuild build -project Demo/YYTextDemo.xcodeproj -target YYTextDemo \
 - 日常增量验证使用 `build`；需要排除缓存问题时再使用 `clean build`。
 - 修改公共代码后优先构建 Framework；涉及交互、资源或示例时也构建 Demo。
 - 运行演示：在 Xcode 打开 Demo 工程，选择 `YYTextDemo` 和可用模拟器后运行。
+- Demo 由 SceneDelegate 程序化创建窗口，根控制器为现有 ViewController 导航类，不使用 Main.storyboard。
 - 现代 SDK 可能暴露旧 API 或部署目标兼容问题，应记录具体报错再处理。
 
 ## Lint 与静态检查
