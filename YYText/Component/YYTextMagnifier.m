@@ -89,8 +89,13 @@
         CGRect rect = (CGRect) {.size = size, .origin = CGPointZero};
         rect = CGRectInset(rect, kPadding, kPadding);
         
-        UIGraphicsBeginImageContextWithOptions(size, NO, 0);
-        CGContextRef context = UIGraphicsGetCurrentContext();
+        UIGraphicsImageRendererFormat *format = [UIGraphicsImageRendererFormat defaultFormat];
+        format.opaque = NO;
+        format.scale = [UIScreen mainScreen].scale;
+        format.preferredRange = UIGraphicsImageRendererFormatRangeStandard;
+        UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithSize:size format:format];
+        image = [renderer imageWithActions:^(UIGraphicsImageRendererContext *rendererContext) {
+        CGContextRef context = rendererContext.CGContext;
         
         CGPathRef boxPath = CGPathCreateWithRect(CGRectMake(0, 0, size.width, size.height), NULL);
         CGPathRef fillPath = CGPathCreateWithEllipseInRect(rect, NULL);
@@ -141,8 +146,7 @@
         CFRelease(fillPath);
         CFRelease(strokePath);
         
-        image = UIGraphicsGetImageFromCurrentImageContext();
-        UIGraphicsEndImageContext();
+        }];
         
     });
     return image;
@@ -237,8 +241,13 @@
         CGSize size = kSize;
         CGRect rect = (CGRect) {.size = size, .origin = CGPointZero};
         
-        UIGraphicsBeginImageContextWithOptions(size, NO, 0);
-        CGContextRef context = UIGraphicsGetCurrentContext();
+        UIGraphicsImageRendererFormat *format = [UIGraphicsImageRendererFormat defaultFormat];
+        format.opaque = NO;
+        format.scale = [UIScreen mainScreen].scale;
+        format.preferredRange = UIGraphicsImageRendererFormatRangeStandard;
+        UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithSize:size format:format];
+        image = [renderer imageWithActions:^(UIGraphicsImageRendererContext *rendererContext) {
+        CGContextRef context = rendererContext.CGContext;
         
         CGPathRef boxPath = CGPathCreateWithRect(rect, NULL);
         
@@ -315,8 +324,7 @@
         CFRelease(path);
         CFRelease(arrowPath);
         
-        image = UIGraphicsGetImageFromCurrentImageContext();
-        UIGraphicsEndImageContext();
+        }];
         
     });
     return image;

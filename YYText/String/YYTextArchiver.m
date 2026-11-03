@@ -115,11 +115,10 @@
 
 + (NSData *)archivedDataWithRootObject:(id)rootObject {
     if (!rootObject) return nil;
-    NSMutableData *data = [NSMutableData data];
-    YYTextArchiver *archiver = [[[self class] alloc] initForWritingWithMutableData:data];
+    YYTextArchiver *archiver = [[self alloc] initRequiringSecureCoding:NO];
     [archiver encodeRootObject:rootObject];
     [archiver finishEncoding];
-    return data;
+    return archiver.encodedData;
 }
 
 + (BOOL)archiveRootObject:(id)rootObject toFile:(NSString *)path {
@@ -136,6 +135,12 @@
 
 - (instancetype)initForWritingWithMutableData:(NSMutableData *)data {
     self = [super initForWritingWithMutableData:data];
+    self.delegate = self;
+    return self;
+}
+
+- (instancetype)initRequiringSecureCoding:(BOOL)requiresSecureCoding {
+    self = [super initRequiringSecureCoding:requiresSecureCoding];
     self.delegate = self;
     return self;
 }
@@ -165,7 +170,13 @@
 
 + (id)unarchiveObjectWithData:(NSData *)data {
     if (data.length == 0) return nil;
-    YYTextUnarchiver *unarchiver = [[self alloc] initForReadingWithData:data];
+    NSError *error = nil;
+    YYTextUnarchiver *unarchiver = [[self alloc] initForReadingFromData:data error:&error];
+    if (!unarchiver) {
+        [NSException raise:NSInvalidUnarchiveOperationException format:@"%@", error.localizedDescription];
+    }
+    unarchiver.requiresSecureCoding = NO;
+    unarchiver.decodingFailurePolicy = NSDecodingFailurePolicyRaiseException;
     return [unarchiver decodeObject];
 }
 
@@ -182,6 +193,12 @@
 
 - (instancetype)initForReadingWithData:(NSData *)data {
     self = [super initForReadingWithData:data];
+    self.delegate = self;
+    return self;
+}
+
+- (instancetype)initForReadingFromData:(NSData *)data error:(NSError **)error {
+    self = [super initForReadingFromData:data error:error];
     self.delegate = self;
     return self;
 }

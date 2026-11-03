@@ -257,15 +257,19 @@ static NSMutableDictionary<NSString *, YYTextEffectWindow *> *YYTextSceneEffectW
         if (!mag.snapshot || mag.snapshot.size.width > 1) {
             static UIImage *placeholder;
             static dispatch_once_t onceToken;
-            dispatch_once(&onceToken, ^{
+            if (isfinite(mag.bounds.size.width) && isfinite(mag.bounds.size.height) &&
+                mag.bounds.size.width > 0 && mag.bounds.size.height > 0) dispatch_once(&onceToken, ^{
                 CGRect rect = mag.bounds;
                 rect.origin = CGPointZero;
-                UIGraphicsBeginImageContextWithOptions(rect.size, NO, 0);
-                CGContextRef context = UIGraphicsGetCurrentContext();
-                [[UIColor colorWithWhite:1 alpha:0.8] set];
-                CGContextFillRect(context, rect);
-                placeholder = UIGraphicsGetImageFromCurrentImageContext();
-                UIGraphicsEndImageContext();
+                UIGraphicsImageRendererFormat *format = [UIGraphicsImageRendererFormat defaultFormat];
+                format.opaque = NO;
+                format.scale = [UIScreen mainScreen].scale;
+                format.preferredRange = UIGraphicsImageRendererFormatRangeStandard;
+                UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithSize:rect.size format:format];
+                placeholder = [renderer imageWithActions:^(UIGraphicsImageRendererContext *rendererContext) {
+                    [[UIColor colorWithWhite:1 alpha:0.8] set];
+                    CGContextFillRect(rendererContext.CGContext, rect);
+                }];
             });
             mag.captureFadeAnimation = YES;
             mag.snapshot = placeholder;
@@ -274,9 +278,15 @@ static NSMutableDictionary<NSString *, YYTextEffectWindow *> *YYTextSceneEffectW
         return rotation;
     }
     
-    UIGraphicsBeginImageContextWithOptions(captureRect.size, NO, 0);
-    CGContextRef context = UIGraphicsGetCurrentContext();
-    if (!context) return rotation;
+    if (!isfinite(captureRect.size.width) || !isfinite(captureRect.size.height) ||
+        captureRect.size.width <= 0 || captureRect.size.height <= 0) return rotation;
+    UIGraphicsImageRendererFormat *format = [UIGraphicsImageRendererFormat defaultFormat];
+    format.opaque = NO;
+    format.scale = [UIScreen mainScreen].scale;
+    format.preferredRange = UIGraphicsImageRendererFormatRangeStandard;
+    UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithSize:captureRect.size format:format];
+    UIImage *image = [renderer imageWithActions:^(UIGraphicsImageRendererContext *rendererContext) {
+    CGContextRef context = rendererContext.CGContext;
     
     CGPoint tp = CGPointMake(captureRect.size.width / 2, captureRect.size.height / 2);
     tp = CGPointApplyAffineTransform(tp, CGAffineTransformMakeRotation(rotation));
@@ -300,8 +310,7 @@ static NSMutableDictionary<NSString *, YYTextEffectWindow *> *YYTextSceneEffectW
         //[window drawViewHierarchyInRect:window.bounds afterScreenUpdates:NO]; //slower when capture whole window
         CGContextRestoreGState(context);
     }
-    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
+    }];
     
     if (mag.snapshot.size.width == 1) {
         mag.captureFadeAnimation = YES;

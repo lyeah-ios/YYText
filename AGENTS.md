@@ -22,7 +22,8 @@
 - `YYText/String/`：文本属性模型、Markdown/表情解析、归档、RunDelegate、Ruby 注音。
 - `YYText/Utility/`：富文本、段落、剪贴板、UIView 分类和底层工具。
 - 同目录包含异步绘制层、弱引用代理、RunLoop 事务等实现。
-- `Framework/YYText.xcodeproj`：框架工程，目标与共享 scheme 均为 `YYText`。
+- `Framework/YYText.xcodeproj`：框架工程，包含 `YYText` 和 `YYTextTests` target，共享 scheme 为 `YYText`。
+- `Framework/YYTextTests/`：框架的 XCTest 测试源码。
 - `Framework/Info.plist`：框架元数据；Framework 目录不是另一份源码。
 - `Demo/YYTextDemo.xcodeproj`：演示应用工程，应用目标为 `YYTextDemo`。
 - `Demo/YYTextDemo/`：AppDelegate、单窗口 SceneDelegate、入口控制器和 `YYText*Example.{h,m}` 示例。
@@ -35,15 +36,15 @@
 - `Attributes/`：属性效果图片、架构图及 PDF 文档，不是运行时框架资源。
 - `README.md`：中英文使用、集成及示例说明；`LICENSE`：MIT 许可。
 - `YYText.podspec`：CocoaPods 发布配置；`.travis.yml`：历史 CI 构建配置。
-- 当前没有测试目录、XCTest 源文件或测试 target；不要将 Demo 当作自动化测试套件。
+- Demo 不是自动化测试套件。
 
 ## 环境与兼容性
 
 - 编译需要 macOS、完整 Xcode 和 iOS SDK；只有 Command Line Tools 不够。
 - Objective-C 使用 ARC，工程的 C 语言标准为 `gnu11`。
-- podspec、Demo 和 Framework 的最低部署目标统一为 iOS 13.0。
+- podspec、Demo 和 Framework 的最低部署目标统一为 iOS 15.0。
 - 集成应用必须使用 UIScene 窗口生命周期；窗口特效和键盘管理不再兼容传统全局窗口路径。
-- 本机验证工具链为 Xcode 26.6 / iOS 26.5；iOS 13 实际运行需另行验证，Xcode 8 CI 仅供历史参考。
+- 本机验证工具链为 Xcode 26.6 / iOS 26.5；iOS 15 实际运行需另行验证，Xcode 8 CI 仅供历史参考。
 - 不为消除 SDK 警告而擅自提高最低版本、修改签名或批量升级工程。
 - 仓库未提供 Podfile；直接构建已有工程不需要先运行 `pod install`。
 - CocoaPods 发布 `YYText/**/*.{h,m}`，并将其下所有 `.h` 声明为公开头文件。
@@ -97,23 +98,25 @@ git diff --check
 
 ## 测试与单个用例
 
-- `Framework/YYText.xcodeproj/xcshareddata/xcschemes/YYText.xcscheme` 的 `Testables` 为空。
-- 当前没有可直接运行的单个测试，也没有已配置的 `xcodebuild test` 测试套件。
+- `Framework/YYTextTests/YYTextTests.m` 包含 `YYTextTests` XCTest 类；共享 `YYText` scheme 的 Test action 包含 `YYTextTests` target。
 - 修复问题时使用对应 `YYText*Example` 手工复现，记录设备、系统、步骤和结果。
 - 编辑相关至少关注选区、中文组合输入、键盘切换、复制粘贴及撤销重做。
 - 布局和绘制相关关注空文本、零尺寸、截断、竖排、附件及同步/异步一致性。
 - 归档相关关注序列化往返、已有数据兼容性和无效输入。
-- 如任务要求自动化测试，先创建 XCTest target 并加入共享 scheme 的 Test action。
-- 新测试目录与 target 名称需要同步记录；不要声称仓库已经存在 `YYTextTests`。
-- 配置测试后，可按以下模板运行单个方法；所有尖括号内容都必须替换：
+- 使用可用模拟器运行完整套件或单个测试方法，将 `<模拟器UDID>` 替换为实际值：
 
 ```sh
-xcodebuild test -project <工程路径> -scheme <含测试的共享scheme> \
+xcodebuild test -project Framework/YYText.xcodeproj -scheme YYText \
   -destination 'platform=iOS Simulator,id=<模拟器UDID>' \
-  -only-testing:<测试target>/<测试类>/<测试方法>
+  CODE_SIGNING_ALLOWED=NO
+
+xcodebuild test -project Framework/YYText.xcodeproj -scheme YYText \
+  -destination 'platform=iOS Simulator,id=<模拟器UDID>' \
+  -only-testing:YYTextTests/YYTextTests/testAttributedStringArchiveRoundTrip \
+  CODE_SIGNING_ALLOWED=NO
 ```
 
-- 仅运行某个测试类时，省略最后的 `/测试方法`；运行完整套件时移除 `-only-testing`。
+- 运行其他单个测试方法时替换方法名；仅运行某个测试类时省略最后的 `/测试方法`。
 - 可用 `xcrun simctl list devices available` 查询本机可用的模拟器 UDID。
 - 无法执行构建或测试时明确说明原因，不将静态阅读或手工验证描述为测试通过。
 

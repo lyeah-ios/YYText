@@ -28,6 +28,15 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
+         <TestableReference skipped = "NO" parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "A10000000000000000000007"
+               BuildableName = "YYTextTests.xctest"
+               BlueprintName = "YYTextTests"
+               ReferencedContainer = "container:YYText.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
       <AdditionalOptions>
       </AdditionalOptions>

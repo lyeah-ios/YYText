@@ -1261,19 +1261,11 @@ typedef NS_ENUM(NSUInteger, YYTextMoveDirection) {
 /// Returns whether the text view can paste data from pastboard.
 - (BOOL)_isPasteboardContainsValidValue {
     UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
-    if (pasteboard.string.length > 0) {
-        return YES;
-    }
-    if (pasteboard.yy_AttributedString.length > 0) {
-        if (_allowsPasteAttributedString) {
-            return YES;
-        }
-    }
-    if (pasteboard.image || pasteboard.yy_ImageData.length > 0) {
-        if (_allowsPasteImage) {
-            return YES;
-        }
-    }
+    if (pasteboard.hasStrings) return YES;
+    if (_allowsPasteAttributedString && [pasteboard containsPasteboardTypes:@[YYTextPasteboardTypeAttributedString]]) return YES;
+    if (_allowsPasteImage && pasteboard.hasImages) return YES;
+    if (_allowsPasteImage && [pasteboard containsPasteboardTypes:@[@"public.image"]]) return YES;
+    if (_allowsPasteImage && NSClassFromString(@"YYImage") && [pasteboard containsPasteboardTypes:@[YYTextUTTypeWEBP]]) return YES;
     return NO;
 }
 

@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		130013001300130013001303 /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 130013001300130013001302 /* SceneDelegate.m */; };
 		58450F09252340A90038B992 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 58450F08252340A90038B992 /* CoreServices.framework */; };
+		A9F100012F00000000000001 /* UniformTypeIdentifiers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A9F100012F00000000000002 /* UniformTypeIdentifiers.framework */; };
 		D91054861F3735D20007F224 /* Animated image support.txt in Resources */ = {isa = PBXBuildFile; fileRef = D910547B1F3735D20007F224 /* Animated image support.txt */; };
 		D91054871F3735D20007F224 /* YYAnimatedImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = D910547D1F3735D20007F224 /* YYAnimatedImageView.m */; };
 		D91054881F3735D20007F224 /* YYFrameImage.m in Sources */ = {isa = PBXBuildFile; fileRef = D910547F1F3735D20007F224 /* YYFrameImage.m */; };
@@ -85,6 +86,7 @@
 		130013001300130013001301 /* SceneDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SceneDelegate.h; sourceTree = "<group>"; };
 		130013001300130013001302 /* SceneDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SceneDelegate.m; sourceTree = "<group>"; };
 		58450F08252340A90038B992 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
+		A9F100012F00000000000002 /* UniformTypeIdentifiers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UniformTypeIdentifiers.framework; path = System/Library/Frameworks/UniformTypeIdentifiers.framework; sourceTree = SDKROOT; };
 		D910547B1F3735D20007F224 /* Animated image support.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Animated image support.txt"; sourceTree = "<group>"; };
 		D910547C1F3735D20007F224 /* YYAnimatedImageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YYAnimatedImageView.h; sourceTree = "<group>"; };
 		D910547D1F3735D20007F224 /* YYAnimatedImageView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YYAnimatedImageView.m; sourceTree = "<group>"; };
@@ -221,6 +223,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A9F100012F00000000000001 /* UniformTypeIdentifiers.framework in Frameworks */,
 				D91055411F37376C0007F224 /* libz.tbd in Frameworks */,
 				D910553F1F3737670007F224 /* SystemConfiguration.framework in Frameworks */,
 				D910553B1F37375F0007F224 /* ImageIO.framework in Frameworks */,
@@ -392,6 +395,7 @@
 				D91055401F37376C0007F224 /* libz.tbd */,
 				D910553E1F3737670007F224 /* SystemConfiguration.framework */,
 				D910553C1F3737640007F224 /* MobileCoreServices.framework */,
+				A9F100012F00000000000002 /* UniformTypeIdentifiers.framework */,
 				D910553A1F37375F0007F224 /* ImageIO.framework */,
 				D91055381F37375A0007F224 /* Accelerate.framework */,
 				D91055361F3737540007F224 /* CoreText.framework */,
@@ -654,7 +658,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -706,7 +710,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;

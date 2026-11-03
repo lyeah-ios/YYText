@@ -489,7 +489,7 @@ debugOptions.CGGlyphBorderColor = [UIColor colorWithRed:1.000 green:0.524 blue:0
 ### More examples
 See `Demo/YYTextDemo.xcodeproj` for more examples:
 
-Open the project in Xcode and run the `YYTextDemo` target on an iOS 13 or later device or simulator. The demo uses a single-window `SceneDelegate` with a programmatic navigation root and retains `LaunchScreen.storyboard` for launch.
+Open the project in Xcode and run the `YYTextDemo` target on an iOS 15 or later device or simulator. The demo uses a single-window `SceneDelegate` with a programmatic navigation root and retains `LaunchScreen.storyboard` for launch.
 
 <img src="https://raw.github.com/ibireme/YYText/master/Demo/DemoSnapshot/text_path.gif" width="320">
 <img src="https://raw.github.com/ibireme/YYText/master/Demo/DemoSnapshot/text_markdown.gif" width="320">
@@ -503,14 +503,14 @@ Installation
 
 ### CocoaPods
 
-1. Add `pod 'YYText'` to your Podfile.
+1. Add `pod 'YYText', :git => 'https://github.com/lyeah-ios/YYText.git', :tag => '4.0.0'` to your Podfile.
 2. Run `pod install` or `pod update`.
 3. Import \<YYText/YYText.h\>.
 
 
 ### Carthage
 
-1. Add `github "ibireme/YYText"` to your Cartfile.
+1. Add `github "lyeah-ios/YYText"` to your Cartfile.
 2. Run `carthage update --platform ios` and add the framework to your project.
 3. Import \<YYText/YYText.h\>.
 
@@ -525,7 +525,7 @@ Installation
     * CoreText
     * QuartzCore
     * Accelerate
-    * MobileCoreServices
+    * UniformTypeIdentifiers
 4. Import `YYText.h`.
 
 
@@ -541,12 +541,12 @@ You can also install documentation locally using [appledoc](https://github.com/t
 
 Requirements
 ==============
-This library requires `iOS 13.0+` and Xcode with an iOS 13 or later SDK.
+This library requires `iOS 15.0+` and Xcode with an iOS 15 or later SDK.
 Applications must adopt the UIScene window lifecycle.
 Build verification uses Xcode 26.6 with the iOS 26.5 SDK; the Xcode 8 Travis configuration is historical.
 
-### Migration to 3.0.0
-The minimum deployment target has changed from iOS 9.0 to iOS 13.0. Applications must adopt UIScene; legacy global-window integration is no longer supported for keyboard management and window effects.
+### Migration to 4.0.0
+The minimum deployment target has increased from iOS 13.0 to iOS 15.0. Applications must adopt UIScene; legacy global-window integration is no longer supported for keyboard management and window effects. The existing UIMenuController-based editing menu remains in place.
 
 Known Demo issues: some text has insufficient contrast in Dark Mode. On the iOS 26 simulator, UIKit may log an out-of-range color warning during animations; its connection to a specific view has not been established.
 
@@ -1045,7 +1045,7 @@ debugOptions.CGGlyphBorderColor = [UIColor colorWithRed:1.000 green:0.524 blue:0
 ### 更多示例
 查看演示工程 `Demo/YYTextDemo.xcodeproj`:
 
-在 Xcode 中打开工程，选择 `YYTextDemo` target，在 iOS 13 或更新版本的设备或模拟器运行。演示使用单窗口 `SceneDelegate` 程序化创建导航根控制器，并保留 `LaunchScreen.storyboard` 启动画面。
+在 Xcode 中打开工程，选择 `YYTextDemo` target，在 iOS 15 或更新版本的设备或模拟器运行。演示使用单窗口 `SceneDelegate` 程序化创建导航根控制器，并保留 `LaunchScreen.storyboard` 启动画面。
 
 <img src="https://raw.github.com/ibireme/YYText/master/Demo/DemoSnapshot/text_path.gif" width="320">
 <img src="https://raw.github.com/ibireme/YYText/master/Demo/DemoSnapshot/text_markdown.gif" width="320">
@@ -1059,14 +1059,14 @@ debugOptions.CGGlyphBorderColor = [UIColor colorWithRed:1.000 green:0.524 blue:0
 
 ### CocoaPods
 
-1. 在 Podfile 中添加 `pod 'YYText'`。
+1. 在 Podfile 中添加 `pod 'YYText', :git => 'https://github.com/lyeah-ios/YYText.git', :tag => '4.0.0'`。
 2. 执行 `pod install` 或 `pod update`。
 3. 导入 \<YYText/YYText.h\>。
 
 
 ### Carthage
 
-1. 在 Cartfile 中添加 `github "ibireme/YYText"`。
+1. 在 Cartfile 中添加 `github "lyeah-ios/YYText"`。
 2. 执行 `carthage update --platform ios` 并将生成的 framework 添加到你的工程。
 3. 导入 \<YYText/YYText.h\>。
 
@@ -1081,7 +1081,7 @@ debugOptions.CGGlyphBorderColor = [UIColor colorWithRed:1.000 green:0.524 blue:0
     * CoreText
     * QuartzCore
     * Accelerate
-    * MobileCoreServices
+    * UniformTypeIdentifiers
 4. 导入 `YYText.h`。
 
 
@@ -1096,12 +1096,12 @@ debugOptions.CGGlyphBorderColor = [UIColor colorWithRed:1.000 green:0.524 blue:0
 
 系统要求
 ==============
-该项目最低支持 `iOS 13.0`，需要包含 iOS 13 或更新 SDK 的 Xcode。
+该项目最低支持 `iOS 15.0`，需要包含 iOS 15 或更新 SDK 的 Xcode。
 集成应用必须采用 UIScene 窗口生命周期。
 构建验证使用 Xcode 26.6 和 iOS 26.5 SDK；仓库中的 Xcode 8 Travis 配置仅供历史参考。
 
-### 迁移至 3.0.0
-最低部署版本从 iOS 9.0 提升至 iOS 13.0。集成应用必须采用 UIScene；键盘管理和窗口特效不再支持传统全局窗口集成方式。
+### 迁移至 4.0.0
+最低部署版本从 iOS 13.0 提升至 iOS 15.0。集成应用必须采用 UIScene；键盘管理和窗口特效不再支持传统全局窗口集成方式。编辑菜单继续使用原有的 UIMenuController 实现。
 
 Demo 已知问题：深色模式下部分文字对比度不足；iOS 26 模拟器上 UIKit 动画可能输出颜色分量越界警告，目前尚未确定与具体视图的关联。
 

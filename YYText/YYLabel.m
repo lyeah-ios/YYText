@@ -69,7 +69,10 @@ static dispatch_queue_t YYLabelGetReleaseQueue() {
 - (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection
 {
     [super traitCollectionDidChange:previousTraitCollection];
-    [self.layer setNeedsDisplay];
+    if (@available(iOS 17.0, *)) {
+    } else {
+        [self.layer setNeedsDisplay];
+    }
 }
 
 #pragma mark - Private
@@ -387,6 +390,12 @@ static dispatch_queue_t YYLabelGetReleaseQueue() {
 }
 
 - (void)_initLabel {
+    if (@available(iOS 17.0, *)) {
+        [self registerForTraitChanges:UITraitCollection.systemTraitsAffectingColorAppearance
+                          withHandler:^(YYLabel *label, UITraitCollection *previousTraitCollection) {
+            [label.layer setNeedsDisplay];
+        }];
+    }
     ((YYTextAsyncLayer *)self.layer).displaysAsynchronously = NO;
     self.layer.contentsScale = [UIScreen mainScreen].scale;
     self.contentMode = UIViewContentModeRedraw;
